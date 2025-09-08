@@ -25,6 +25,12 @@ h1 {
   margin-bottom: 10px; 
 }
 
+.emaberto {
+  color: #5a3d3d; 
+  border-bottom: 3px solid #5a3d3d;
+
+}
+
 /* Layout flexível */
 .container-flex { display: flex; gap: 20px; flex-wrap: wrap; }
 .left-panel { flex: 2; display: flex; flex-wrap: wrap; gap: 20px; }
@@ -32,7 +38,9 @@ h1 {
 
 /* Tabelas compactas */
 .empresa-block { background: #fff; padding: 10px; border-radius: 12px; box-shadow: 0 3px 10px rgba(0,0,0,0.05); flex: 1 1 48%; }
-.empresa-block h2 { color: #3a465f; font-size: 1.2rem; margin-bottom: 5px; text-align: center; }
+.empresa-block2 { background: #fff; padding: 10px; border-radius: 12px; box-shadow: 0 3px 10px rgba(0,0,0,0.05); flex: 1 1 48%; }
+.empresa-block h2 { color: #3a465f; font-size: 1.2rem; margin-bottom: 5px; text-align: center; } 
+.empresa-block2 h2 { color: #5f3a3a; font-size: 1.2rem; margin-bottom: 5px; text-align: center; } 
 
 .transfer-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-top: 5px; }
 .transfer-table th, .transfer-table td { border: 1px solid #ccc; padding: 4px 6px; text-align: left; }
@@ -40,6 +48,14 @@ h1 {
 .transfer-table tr:nth-child(even) td { background-color: #f9fafb; }
 .transfer-table tr:hover td { background-color: #e0f7f1; transition: 0.2s; }
 .total-row { font-weight: bold; background-color: #bda696; }
+
+.transfer-table2 { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-top: 5px; }
+.transfer-table2 th, .transfer-table2 td { border: 1px solid #ccc; padding: 4px 6px; text-align: left; }
+.transfer-table2 th { background: linear-gradient(to bottom, #7c5d5d, #7c5d5d); color: white; font-weight: 600; }
+.transfer-table2 tr:nth-child(even) td { background-color: #f9fafb; }
+.transfer-table2 tr:hover td { background-color: #e0f7f1; transition: 0.2s; }
+.total-row2 { font-weight: bold; background-color: #bd9696; }
+
 
 /* Canvas */
 canvas { max-width: 100%; height: auto; }
@@ -58,7 +74,32 @@ canvas { max-width: 100%; height: auto; }
   animation: fadeIn 0.3s ease-in-out;
 }
 
+.modal2 {
+  display: none; 
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(4px); /* desfoque suave do fundo */
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
 .modal-content {
+  background: #fff;
+  padding: 25px;
+  border-radius: 12px;
+  width: 70%;
+  max-height: 80%;
+  overflow-y: auto;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+  animation: slideUp 0.3s ease-in-out;
+  position: relative;
+}
+
+.modal-content2 {
   background: #fff;
   padding: 25px;
   border-radius: 12px;
@@ -113,6 +154,37 @@ canvas { max-width: 100%; height: auto; }
   transition: background-color 0.2s;
 }
 
+
+
+.modal-content2 table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+  font-size: 0.9rem;
+}
+
+.modal-content2 th, .modal-content2 td {
+  border: 1px solid #ddd;
+  padding: 6px 8px;
+  text-align: left;
+}
+
+.modal-content2 th {
+  background: #970f0f;
+  color: white;
+  font-weight: 600;
+}
+
+.modal-content2 tr:nth-child(even) td {
+  background-color: #f9f9f9;
+}
+
+.modal-content2 tr:hover td {
+  background-color: #e6f7f1;
+  transition: background-color 0.2s;
+}
+
+
 /* Animações */
 @keyframes fadeIn {
   from {opacity: 0;}
@@ -127,8 +199,8 @@ canvas { max-width: 100%; height: auto; }
 {% endblock %}
 
 {% block content %}
-<h1>Dashboard Pedidos a Vencer - CRC</h1>
-
+<!--PEDIDOS A VENCER-->
+<h1>Pedidos a Vencer</h1>
 <div class="container-flex">
 
 <!-- ESQUERDA: 5 tabelas em 2 colunas -->
@@ -211,11 +283,13 @@ canvas { max-width: 100%; height: auto; }
 </div>
 
 <!-- Modal -->
-<div id="detalhesModal" class="modal">
+<div id="detalhesModalAvencer" class="modal">
   <div class="modal-content">
-    <span class="close-btn">&times;</span>
+    <span class="close-btn" data-modal="detalhesModalAvencer">&times;</span>
     <h2>Detalhes do Cliente</h2>
-    <table id="detalhesTable">
+
+    <!-- Tabela Pedidos a Vencer -->
+    <table id="detalhesAvencerTable" class="transfer-table">
       <thead>
         <tr>
           <th>Empresa</th>
@@ -229,6 +303,117 @@ canvas { max-width: 100%; height: auto; }
     </table>
   </div>
 </div>
+
+</div>
+
+<br><br><br><br>
+
+<!--PEDIDOS EM ABERTO-->
+<h1 class="emaberto">Pedidos em Aberto</h1>
+<div class="container-flex">
+<!-- ESQUERDA: 5 tabelas em 2 colunas -->
+  <div class="left-panel">
+    {% set tabelas = [
+      {'data': tabela6, 'titulo': 'GRUPO EUCATUR', 'total': totais.tabela6},
+      {'data': tabela7, 'titulo': 'EXTRA GRUPO', 'total': totais.tabela7},
+      {'data': tabela8, 'titulo': 'LICITAÇÕES', 'total': totais.tabela8},
+      {'data': tabela9, 'titulo': 'MANAUS', 'total': totais.tabela9},
+      {'data': tabela10, 'titulo': 'SINETRAM', 'total': totais.tabela10}
+    ] %}
+
+    {% for tabela in tabelas %}
+    <div class="empresa-block2">
+      <h2>{{ tabela.titulo }}</h2>
+      <table class="transfer-table2">
+        <thead>
+          <tr>
+            <th>Empresa</th>
+            <th>Subgrupo</th>
+            <th>UF</th>
+            <th>Valor Total (R$)</th>
+            <th>Saldo Total (R$)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in tabela.data %}
+          <tr class="totalizador" data-id="{{ row.clientesgc_id }}">
+            <td>{{ row.empresa }}</td>
+            <td>{{ row.subgrupo }}</td>
+            <td>{{ row.uf }}</td>
+            <td>{{ "{:,.2f}".format(row.total_valor).replace(",", "X").replace(".", ",").replace("X", ".") }}</td>
+            <td>{{ "{:,.2f}".format(row.total_saldo).replace(",", "X").replace(".", ",").replace("X", ".") }}</td>
+          </tr>
+          {% endfor %}
+          <tr class="total-row2">
+            <td colspan="3">TOTAL</td>
+            <td>{{ "{:,.2f}".format(tabela.total.valor).replace(",", "X").replace(".", ",").replace("X", ".") }}</td>
+            <td>{{ "{:,.2f}".format(tabela.total.saldo).replace(",", "X").replace(".", ",").replace("X", ".") }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    {% endfor %}
+  </div>
+
+<!-- DIREITA: gráfico de pizza -->
+<div class="right-panel">
+  <h2 class="h2-destaque">Totais por Grupo (%)</h2>
+  <canvas id="pieChart2"></canvas>
+
+  <!--"TOP 5"-->
+  <h2 class="h2-destaque" style="margin-top:30px;">Top 5 Maiores Valores a Receber</h2>
+  <div class="table-container">
+    <table class="transfer-table2">
+      <thead>
+        <tr>
+          <th>Empresa</th>
+          <th>Subgrupo</th>
+          <th>UF</th>
+          <th>Pedido</th>
+          <th>Vencimento</th>
+          <th>Saldo (R$)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in top5emaberto %}
+        <tr>
+          <td>{{ row.empresa }}</td>
+          <td>{{ row.subgrupo }}</td>
+          <td>{{ row.uf }}</td>
+          <td>{{ row.pedido }}</td>
+          <td>{{ row.vencimento.strftime('%d/%m/%Y') if row.vencimento else '' }}</td>
+          <td>{{ "{:,.2f}".format(row.saldo or 0).replace(",", "X").replace(".", ",").replace("X", ".") }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal -->
+<div id="detalhesModalEmaberto" class="modal">
+  <div class="modal-content2">
+    <span class="close-btn" data-modal="detalhesModalEmaberto">&times;</span>
+    <h2>Detalhes do Cliente</h2>
+
+    <table id="detalhesEmabertoTable" class="transfer-table">
+      <thead>
+        <tr>
+          <th>Empresa</th>
+          <th>Vencimento</th>
+          <th>UF</th>
+          <th>Valor (R$)</th>
+          <th>Saldo (R$)</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+
+</div>
+
 
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -260,6 +445,44 @@ const pieChart = new Chart(ctx, {
                     label: function(context) {
                         let valor = context.raw;
                         let total = {{ totais.tabela1.saldo + totais.tabela2.saldo + totais.tabela3.saldo + totais.tabela4.saldo + totais.tabela5.saldo }};
+                        let perc = ((valor / total) * 100).toFixed(2);
+                        return context.label + ': R$ ' + valor.toLocaleString('pt-BR') + ' (' + perc + '%)';
+                    }
+                }
+            }
+        }
+    }
+});
+
+
+
+const ctx2 = document.getElementById('pieChart2').getContext('2d');
+const pieChart2 = new Chart(ctx2, {
+    type: 'pie',
+    data: {
+        labels: ['GRUPO EUCATUR','EXTRA GRUPO','LICITAÇÕES','MANAUS','SINETRAM'],
+        datasets: [{
+            label: 'Total a Vencer',
+            data: [
+                {{ totais.tabela6.saldo }},
+                {{ totais.tabela7.saldo }},
+                {{ totais.tabela8.saldo }},
+                {{ totais.tabela9.saldo }},
+                {{ totais.tabela10.saldo }}
+            ],
+            backgroundColor: ['#af8a8a', '#ecdfdf', '#684e4e', '#bd6969', '#ca8686'],
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { position: 'bottom' },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        let valor = context.raw;
+                        let total = {{ totais.tabela6.saldo + totais.tabela7.saldo + totais.tabela8.saldo + totais.tabela9.saldo + totais.tabela10.saldo }};
                         let perc = ((valor / total) * 100).toFixed(2);
                         return context.label + ': R$ ' + valor.toLocaleString('pt-BR') + ' (' + perc + '%)';
                     }
@@ -347,38 +570,68 @@ document.querySelectorAll(".totalizador").forEach(row => {
   row.addEventListener("dblclick", () => {
     let clienteId = row.getAttribute("data-id");
 
-    fetch(`/detalhadoavencercrcFIN/${clienteId}`)
+    fetch(`/detalhadopedidoscrc/${clienteId}`)
       .then(res => res.json())
       .then(data => {
-        let tbody = document.querySelector("#detalhesTable tbody");
-        tbody.innerHTML = "";
+        // Limpar tabelas
+        let tbodyAvencer = document.querySelector("#detalhesAvencerTable tbody");
+        let tbodyEmaberto = document.querySelector("#detalhesEmabertoTable tbody");
+        tbodyAvencer.innerHTML = "";
+        tbodyEmaberto.innerHTML = "";
 
-        data.forEach(item => {
-            tbody.innerHTML += `
-                <tr>
-                <td>${item.empresa}</td>
-                <td>${new Date(item.vencimento).toLocaleDateString("pt-BR")}</td>
-                <td>${item.uf}</td>
-                <td>${Number(item.valor).toLocaleString("pt-BR", {style: "currency", currency: "BRL"})}</td>
-                <td>${Number(item.saldo).toLocaleString("pt-BR", {style: "currency", currency: "BRL"})}</td>
-                </tr>
-            `;
+        // Preencher pedidos a vencer
+        data.detalhesavencer.forEach(item => {
+          tbodyAvencer.innerHTML += `
+            <tr>
+              <td>${item.empresa}</td>
+              <td>${new Date(item.vencimento).toLocaleDateString("pt-BR")}</td>
+              <td>${item.uf}</td>
+              <td>${Number(item.valor).toLocaleString("pt-BR", {style: "currency", currency: "BRL"})}</td>
+              <td>${Number(item.saldo).toLocaleString("pt-BR", {style: "currency", currency: "BRL"})}</td>
+            </tr>
+          `;
         });
 
-        document.getElementById("detalhesModal").style.display = "flex";
+        // Preencher pedidos em aberto
+        data.detalhesemaberto.forEach(item => {
+          tbodyEmaberto.innerHTML += `
+            <tr>
+              <td>${item.empresa}</td>
+              <td>${new Date(item.vencimento).toLocaleDateString("pt-BR")}</td>
+              <td>${item.uf}</td>
+              <td>${Number(item.valor).toLocaleString("pt-BR", {style: "currency", currency: "BRL"})}</td>
+              <td>${Number(item.saldo).toLocaleString("pt-BR", {style: "currency", currency: "BRL"})}</td>
+            </tr>
+          `;
+        });
+
+        // Saber de qual bloco veio o clique
+        if (row.closest(".empresa-block")) {
+          // veio da seção "a vencer"
+          document.getElementById("detalhesModalAvencer").style.display = "flex";
+        } else if (row.closest(".empresa-block2")) {
+          // veio da seção "em aberto"
+          document.getElementById("detalhesModalEmaberto").style.display = "flex";
+        }
       });
   });
 });
 
-// Fechar modal
-document.querySelector(".close-btn").onclick = () => {
-  document.getElementById("detalhesModal").style.display = "none";
-};
+// Fechar modais ao clicar no X
+document.querySelectorAll(".close-btn").forEach(btn => {
+  btn.onclick = () => {
+    let modalId = btn.getAttribute("data-modal");
+    document.getElementById(modalId).style.display = "none";
+  };
+});
+
+// Fechar modal ao clicar fora
 window.onclick = (event) => {
   if (event.target.classList.contains("modal")) {
-    document.getElementById("detalhesModal").style.display = "none";
+    event.target.style.display = "none";
   }
 };
+
 </script>
 
 {% endblock %}
