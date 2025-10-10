@@ -172,6 +172,33 @@
     <div class="form-container" id="form-box">
         <h2>Simulação de Viabilidade</h2>
         <form id="form-simulacao" autocomplete="off">
+            <h3>Dados do Cliente em Potencial</h3>
+            <label for="nome">Nome *</label>
+            <input type="text" id="nome" name="nome" required>
+            
+            <label for="sobrenome">Sobrenome *</label>
+            <input type="text" id="sobrenome" name="sobrenome" required>
+            
+            <label for="email">Email *</label>
+            <input type="text" id="email" name="email" required>
+            
+            <label for="telefone">Telefone *</label>
+            <input type="tel" id="telefone" name="telefone" placeholder="Apenas números" required>
+
+            <label for="situacao">Situação *</label>
+            <select id="situacao" name="situacao" required>
+                <option value="" disabled selected>Selecione a situação</option>
+                <option value="MQL">MQL</option>
+                <option value="SAL">SAL</option>
+                <option value="SUSPECT">SUSPECT</option>
+                <option value="PROSPECT">PROSPECT</option>
+                <option value="OPPS">OPPS</option>
+                <option value="DESQUALIFICADO">DESQUALIFICADO</option>
+                <option value="CONTACTAR">CONTACTAR NO FUTURO</option>
+            </select>
+            
+
+            <h3>Informações Quantitativas</h3>
             <label for="qtde_cartoes">Quantidade de Cartões *</label>
             <input type="number" id="qtde_cartoes" name="qtde_cartoes" required>
 
@@ -240,6 +267,11 @@
     
     // Pega dados do formulário
     const data = {
+        nome: document.getElementById('nome').value.trim(),
+        sobrenome: document.getElementById('sobrenome').value.trim(),
+        email: document.getElementById('email').value.trim(),
+        telefone: Number(document.getElementById('telefone').value),
+        situacao: document.getElementById('situacao').value.trim(),        
         qtde_cartoes: Number(document.getElementById('qtde_cartoes').value),
         valor_credito: parseFloat(document.getElementById('valor_credito').value.replace(/[R$\s\.]/g, '').replace(',', '.')),
         meses: Number(document.getElementById('meses').value),
@@ -348,6 +380,11 @@
     document.addEventListener("click", function(e) {
         if (e.target && e.target.id === "btn-gravar") {
             const dadosFormulario = {
+                nome: document.getElementById("nome").value,
+                sobrenome: document.getElementById("sobrenome").value,
+                email: document.getElementById("email").value,
+                telefone: document.getElementById("telefone").value,
+                situacao: document.getElementById("situacao").value,
                 qtde_cartoes: document.getElementById("qtde_cartoes").value,
                 valor_credito: document.getElementById("valor_credito").value,
                 meses: document.getElementById("meses").value,
