@@ -1387,6 +1387,11 @@ def gravar_propostaCOM():
             return float(valor.replace("R$", "").replace(".", "").replace(",", ".").strip())
 
         valores = (
+            data['nome'],
+            data['sobrenome'],
+            data['email'],
+            int(data['telefone']),
+            data['situacao'],
             int(data['qtde_cartoes']),
             tratar_valor(data['valor_credito']),
             int(data['meses']),
@@ -1413,7 +1418,8 @@ def gravar_propostaCOM():
         #Insert
         sql = """
             INSERT INTO simulacao_com (
-                qtde_cartoes, valor_credito, qtde_meses, taxa_adm, venda_cartoes,
+                nome, sobrenome, email, telefone, situacao, qtde_cartoes, 
+                valor_credito, qtde_meses, taxa_adm, venda_cartoes,
                 qtde_cartoes_tag, rec_tags, qtde_cartoes_eus, rec_saude,
                 consumo_credenciado, confeccao_cartoes, custos_operacionais, custos_operacionais_qtde,
                 custo_tag, custo_tag_qtde, custo_eus, custo_eus_qtde,
@@ -1426,7 +1432,8 @@ def gravar_propostaCOM():
                 %s, %s, %s, %s, %s, %s, %s, %s, %s,
                 %s, %s, %s, %s, %s, %s, %s, %s, %s,
                 %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
-                %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+                %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
+                %s, %s, %s, %s, %s 
             )
         """
         
@@ -2700,6 +2707,11 @@ def gravar_propostaprcCOM():
             return float(valor.replace("R$", "").replace(".", "").replace(",", ".").strip())
 
         valores = (
+            data['nome'],
+            data['sobrenome'],
+            data['email'],
+            int(data['telefone']),
+            data['situacao'],
             int(data['qtde_cartoes']),
             tratar_valor(data['valor_credito']),
             int(data['meses']),
@@ -2728,6 +2740,7 @@ def gravar_propostaprcCOM():
         #Funcionalidade
         sql = """
             INSERT INTO simulacaoprc_com (
+                nome, sobrenome, email, telefone, situacao, 
                 qtde_cartoes, valor_credito, qtde_meses, taxa_adm, venda_cartoes,
                 qtde_cartoes_tag, rec_tags, qtde_cartoes_eus, rec_saude,
                 consumo_credenciado, confeccao_cartoes, custos_operacionais, custos_operacionais_qtde,
@@ -2741,7 +2754,8 @@ def gravar_propostaprcCOM():
                 %s, %s, %s, %s, %s, %s, %s, %s, %s,
                 %s, %s, %s, %s, %s, %s, %s, %s,
                 %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
-                %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+                %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
+                %s, %s, %s, %s, %s
             )
         """
         
@@ -3397,6 +3411,11 @@ def gravar_propostaeucCOM():
             return float(valor.replace("R$", "").replace(".", "").replace(",", ".").strip())
 
         valores = (
+            data['nome'],
+            data['sobrenome'],
+            data['email'],
+            int(data['telefone']),
+            data['situacao'],
             int(data['qtde_cartoes']),
             tratar_valor(data['valor_credito']),
             int(data['meses']),
@@ -3420,6 +3439,7 @@ def gravar_propostaeucCOM():
         #Insert
         sql = """
             INSERT INTO simulacaoeuc_com (
+                nome, sobrenome, email, telefone, situacao,
                 qtde_cartoes, valor_credito, qtde_meses, taxa_adm,
                 qtde_cartoes_tag, rec_tags, qtde_cartoes_eus, rec_saude,
                 consumo_credenciado, antecipacao_angels, apropriacao_credito, investimento,
@@ -3437,7 +3457,7 @@ def gravar_propostaeucCOM():
                 %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
                 %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
                 %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
-                %s, %s
+                %s, %s, %s, %s, %s, %s, %s
             )
         """
         
@@ -4951,299 +4971,158 @@ def uploadpedidoscrcFIN():
 
     return render_template('uploadpedidoscrcFIN.html')
 
-#Dash Pedidos a Vencer
-@app.route('/dashboardpedidosavencercrcFIN')
+@app.route('/uploadpedidosdiarioscrcFIN', methods=['GET', 'POST'])
 @modulo_requerido('CONTASARECEBER')
-def dashboardpedidoscrcFIN():
-    conn = mysql.connector.connect(**db_config)
-    cursor = conn.cursor(dictionary=True)
+def uploadpedidosdiarioscrcFIN():
+    # Verificação de sessão ativa
+    if 'username' not in session:
+        flash('Você precisa estar logado para acessar esta página.', 'warning')
+        return redirect(url_for('login'))
 
-    # ================== TABELA 1: GRUPO EUCATUR ==================
-    cursor.execute("""
-        SELECT c.clientesgc_id, c.empresa, c.subgrupo, c.uf,
-               SUM(p.valor) AS total_valor,
-               SUM(p.saldo) AS total_saldo
-        FROM pedidosavencersgc_crc p
-        JOIN clientessgc c ON c.clientesgc_id = p.clientesgc_id
-        WHERE c.subgrupo = 'GRUPO EUCATUR'
-        GROUP BY c.clientesgc_id, c.empresa, c.subgrupo, c.uf
-    """)
-    tabela1 = cursor.fetchall()
-    totais_tabela1 = {
-        "valor": sum(row["total_valor"] or 0 for row in tabela1),
-        "saldo": sum(row["total_saldo"] or 0 for row in tabela1)
-    }
+    if request.method == 'POST':
+        arquivo = request.files.get('arquivo_excel')
 
-    # ================== TABELA 2: EXTRA GRUPO ==================
-    cursor.execute("""
-        SELECT c.clientesgc_id, c.empresa, c.subgrupo, c.uf,
-               SUM(p.valor) AS total_valor,
-               SUM(p.saldo) AS total_saldo
-        FROM pedidosavencersgc_crc p
-        JOIN clientessgc c ON c.clientesgc_id = p.clientesgc_id
-        WHERE c.subgrupo = 'EXTRAGRUPO'
-        GROUP BY c.clientesgc_id, c.empresa, c.subgrupo, c.uf
-    """)
-    tabela2 = cursor.fetchall()
-    totais_tabela2 = {
-        "valor": sum(row["total_valor"] or 0 for row in tabela2),
-        "saldo": sum(row["total_saldo"] or 0 for row in tabela2)
-    }
+        if not arquivo:
+            flash('Nenhum arquivo enviado.', 'erro')
+            return redirect(url_for('uploadpedidosdiarioscrcFIN'))
 
-    # ================== TABELA 3: LICITAÇÕES ==================
-    cursor.execute("""
-        SELECT c.clientesgc_id, c.empresa, c.subgrupo, c.uf,
-               SUM(p.valor) AS total_valor,
-               SUM(p.saldo) AS total_saldo
-        FROM pedidosavencersgc_crc p
-        JOIN clientessgc c ON c.clientesgc_id = p.clientesgc_id
-        WHERE c.subgrupo = 'LICITAÇÕES'
-        GROUP BY c.clientesgc_id, c.empresa, c.subgrupo, c.uf
-    """)
-    tabela3 = cursor.fetchall()
-    totais_tabela3 = {
-        "valor": sum(row["total_valor"] or 0 for row in tabela3),
-        "saldo": sum(row["total_saldo"] or 0 for row in tabela3)
-    }
+        try:
+            # Leitura do Excel
+            df = pd.read_excel(arquivo, engine='openpyxl')
 
-    # ================== TABELA 4: UF AM, Exceto SINETRAM ==================
-    cursor.execute("""
-        SELECT c.clientesgc_id, c.empresa, c.subgrupo, c.uf,
-               SUM(p.valor) AS total_valor,
-               SUM(p.saldo) AS total_saldo
-        FROM pedidosavencersgc_crc p
-        JOIN clientessgc c ON c.clientesgc_id = p.clientesgc_id
-        WHERE c.uf = 'AM' AND c.subgrupo != 'SINETRAM'
-        GROUP BY c.clientesgc_id, c.empresa, c.subgrupo, c.uf
-    """)
-    tabela4 = cursor.fetchall()
-    totais_tabela4 = {
-        "valor": sum(row["total_valor"] or 0 for row in tabela4),
-        "saldo": sum(row["total_saldo"] or 0 for row in tabela4)
-    }
+            # Verifica se a coluna T existe (índice 19)
+            if len(df.columns) <= 19:
+                flash('O arquivo não possui a formatação esperada!', 'erro')
+                return redirect(url_for('uploadpedidosdiarioscrcFIN'))
 
-    # ================== TABELA 5: SINETRAM ==================
-    cursor.execute("""
-        SELECT c.clientesgc_id, c.empresa, c.subgrupo, c.uf,
-               SUM(p.valor) AS total_valor,
-               SUM(p.saldo) AS total_saldo
-        FROM pedidosavencersgc_crc p
-        JOIN clientessgc c ON c.clientesgc_id = p.clientesgc_id
-        WHERE c.subgrupo = 'SINETRAM'
-        GROUP BY c.clientesgc_id, c.empresa, c.subgrupo, c.uf
-    """)
-    tabela5 = cursor.fetchall()
-    totais_tabela5 = {
-        "valor": sum(row["total_valor"] or 0 for row in tabela5),
-        "saldo": sum(row["total_saldo"] or 0 for row in tabela5)
-    }
+            # Remove colunas E, G, S e T
+            indices_para_excluir = [4 , 18 , 19]
+            indices_existentes = [i for i in indices_para_excluir if i < df.shape[1]]
+            df_filtrado = df.drop(df.columns[indices_existentes], axis=1)
 
-    cursor.close()
-    conn.close()
+            # Renomeia colunas conforme tabela
+            df_filtrado.columns = [
+                "pedido",
+                "clientesgc_id",
+                "cnpj",
+                "razao_social",
+                "produto",
+                "condicao_pagamento",
+                "data_pedido",
+                "data_credito",
+                "tipo",
+                "fase",
+                "valor",
+                "taxa",
+                "desconto",
+                "estorno",
+                "emissao",
+                "outros",
+                "faturas"
+            ]
 
-    # ================== TOP 5 MAIORES VALORES ==================
-    conn = mysql.connector.connect(**db_config)
-    cursor = conn.cursor(dictionary=True)
+            # Normalizações
+            df_filtrado["data_pedido"] = pd.to_datetime(df_filtrado["data_pedido"], errors="coerce")
+            df_filtrado["data_credito"] = pd.to_datetime(df_filtrado["data_credito"], errors="coerce")
+            for col in ["valor", "taxa", "desconto", "estorno"]:
+                df_filtrado[col] = pd.to_numeric(df_filtrado[col], errors="coerce").fillna(0)
 
-    cursor.execute("""
-        SELECT c.empresa, c.subgrupo, c.uf, 
-               p.pedido, p.vencimento, 
-               p.saldo
-        FROM pedidosavencersgc_crc p
-        JOIN clientessgc c ON c.clientesgc_id = p.clientesgc_id
-        ORDER BY p.saldo DESC
-        LIMIT 5
-    """)
-    top5 = cursor.fetchall()
+            if not df_filtrado.empty:
+                try:
+                    conn = mysql.connector.connect(**db_config)
+                    cursor = conn.cursor(dictionary=True)
 
-    cursor.close()
-    conn.close()
+                    # Busca IDs válidos da tabela pai
+                    cursor.execute("SELECT clientesgc_id FROM clientessgc")
+                    ids_validos = {row["clientesgc_id"] for row in cursor.fetchall()}
+
+                    blacklist_clientes = {3147, 3148, 3149, 3150, 3151, 3152, 3153, 3154, 3155, 3156, 3157, 3158, 3159, 3160, 246, 1886}
+
+                    # Prepara listas
+                    dados_validos = []
+                    ids_invalidos = set()
+
+                    for _, row in df_filtrado.iterrows():
+                        try:
+                            cliente_id = int(row["clientesgc_id"])
+                        except:
+                            continue  # ignora se não for número
+
+                        if cliente_id in blacklist_clientes:
+                            continue  # ignora clientes da blacklist
+
+                        if cliente_id in ids_validos:
+                            dados_validos.append((
+                                int(row["pedido"]) if pd.notna(row["pedido"]) else None,
+                                cliente_id,
+                                str(row["cnpj"]),
+                                str(row["razao_social"]),
+                                str(row["produto"]),
+                                str(row["condicao_pagamento"]),
+                                row["data_pedido"].date() if pd.notnull(row["data_pedido"]) else None,
+                                row["data_credito"].date() if pd.notnull(row["data_credito"]) else None,
+                                str(row["tipo"]),
+                                str(row["fase"]),
+                                float(row["valor"]),
+                                float(row["taxa"]),
+                                float(row["desconto"]),
+                                float(row["estorno"]),
+                                float(row["emissao"]),
+                                float(row["outros"]),
+                                str(row["faturas"]),
+                            ))
+                        else:
+                            ids_invalidos.add(cliente_id)
 
 
+                    # Se houver dados válidos, insere
+                    if dados_validos:
+                        query = """
+                            INSERT INTO pedidosdiariossgc_crc
+                            (pedido, clientesgc_id, cnpj, razao_social, produto, condicao_pagamento, data_pedido, data_credito, tipo, fase, valor, taxa,
+                            desconto, estorno, emissao, outros, faturas)
+                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                            ON DUPLICATE KEY UPDATE
+                                clientesgc_id = VALUES(clientesgc_id),
+                                cnpj = VALUES(cnpj),
+                                razao_social = VALUES(razao_social),
+                                produto = VALUES(produto),
+                                condicao_pagamento = VALUES(condicao_pagamento),
+                                data_pedido = VALUES(data_pedido),
+                                data_credito = VALUES(data_credito),
+                                tipo = VALUES(tipo),
+                                fase = VALUES(fase),
+                                valor = VALUES(valor),
+                                taxa = VALUES(taxa),
+                                desconto = VALUES(desconto),
+                                estorno = VALUES(estorno),
+                                emissao = VALUES(emissao),
+                                outros = VALUES(outros),
+                                faturas = VALUES(faturas)
+                        """
+                        cursor.executemany(query, dados_validos)
+                        conn.commit()
+                        flash(f"Pedidos importados com sucesso!", "sucesso")
 
+                    # Feedback de inválidos
+                    if ids_invalidos:
+                        flash(f"Clientes não cadastrados ignorados: {', '.join(map(str, ids_invalidos))}", "warning")
 
+                except Error as db_error:
+                    flash(f"Erro ao atualizar os dados no banco: {db_error}", "erro")
 
+                finally:
+                    cursor.close()
+                    conn.close()
 
+            else:
+                flash("Nenhum pedido encontrado para importar.", "info")
 
-    # ================== TABELA 6: GRUPO EUCATUR ==================
-    conn = mysql.connector.connect(**db_config)
-    cursor = conn.cursor(dictionary=True)
+        except Exception as e:
+            flash(f"Erro ao processar o arquivo: {str(e)}", "erro")
+            return redirect(url_for('uploadpedidosdiarioscrcFIN'))
 
-    cursor.execute("""
-        SELECT c.clientesgc_id, c.empresa, c.subgrupo, c.uf,
-               SUM(p.valor) AS total_valor,
-               SUM(p.saldo) AS total_saldo
-        FROM pedidosemabertosgc_crc p
-        JOIN clientessgc c ON c.clientesgc_id = p.clientesgc_id
-        WHERE c.grupo = 'GRUPO EUCATUR'
-        GROUP BY c.clientesgc_id, c.empresa, c.subgrupo, c.uf
-    """)
-    tabela6 = cursor.fetchall()
-    totais_tabela6 = {
-        "valor": sum(row["total_valor"] or 0 for row in tabela6),
-        "saldo": sum(row["total_saldo"] or 0 for row in tabela6)
-    }
-
-    # ================== TABELA 7: EXTRA GRUPO ==================
-    cursor.execute("""
-        SELECT c.clientesgc_id, c.empresa, c.subgrupo, c.uf,
-               SUM(p.valor) AS total_valor,
-               SUM(p.saldo) AS total_saldo
-        FROM pedidosemabertosgc_crc p
-        JOIN clientessgc c ON c.clientesgc_id = p.clientesgc_id
-        WHERE c.subgrupo = 'EXTRAGRUPO'
-        GROUP BY c.clientesgc_id, c.empresa, c.subgrupo, c.uf
-    """)
-    tabela7 = cursor.fetchall()
-    totais_tabela7 = {
-        "valor": sum(row["total_valor"] or 0 for row in tabela7),
-        "saldo": sum(row["total_saldo"] or 0 for row in tabela7)
-    }
-
-    # ================== TABELA 8: LICITAÇÕES ==================
-    cursor.execute("""
-        SELECT c.clientesgc_id, c.empresa, c.subgrupo, c.uf,
-               SUM(p.valor) AS total_valor,
-               SUM(p.saldo) AS total_saldo
-        FROM pedidosemabertosgc_crc p
-        JOIN clientessgc c ON c.clientesgc_id = p.clientesgc_id
-        WHERE c.subgrupo = 'LICITAÇÕES'
-        GROUP BY c.clientesgc_id, c.empresa, c.subgrupo, c.uf
-    """)
-    tabela8 = cursor.fetchall()
-    totais_tabela8 = {
-        "valor": sum(row["total_valor"] or 0 for row in tabela8),
-        "saldo": sum(row["total_saldo"] or 0 for row in tabela8)
-    }
-
-    # ================== TABELA 9: UF AM, Exceto SINETRAM ==================
-    cursor.execute("""
-        SELECT c.clientesgc_id, c.empresa, c.subgrupo, c.uf,
-               SUM(p.valor) AS total_valor,
-               SUM(p.saldo) AS total_saldo
-        FROM pedidosemabertosgc_crc p
-        JOIN clientessgc c ON c.clientesgc_id = p.clientesgc_id
-        WHERE c.uf = 'AM' AND c.subgrupo != 'SINETRAM'
-        GROUP BY c.clientesgc_id, c.empresa, c.subgrupo, c.uf
-    """)
-    tabela9 = cursor.fetchall()
-    totais_tabela9 = {
-        "valor": sum(row["total_valor"] or 0 for row in tabela9),
-        "saldo": sum(row["total_saldo"] or 0 for row in tabela9)
-    }
-
-    # ================== TABELA 10: SINETRAM ==================
-    cursor.execute("""
-        SELECT c.clientesgc_id, c.empresa, c.subgrupo, c.uf,
-               SUM(p.valor) AS total_valor,
-               SUM(p.saldo) AS total_saldo
-        FROM pedidosemabertosgc_crc p
-        JOIN clientessgc c ON c.clientesgc_id = p.clientesgc_id
-        WHERE c.subgrupo = 'SINETRAM'
-        GROUP BY c.clientesgc_id, c.empresa, c.subgrupo, c.uf
-    """)
-    tabela10 = cursor.fetchall()
-    totais_tabela10 = {
-        "valor": sum(row["total_valor"] or 0 for row in tabela10),
-        "saldo": sum(row["total_saldo"] or 0 for row in tabela10)
-    }
-
-    cursor.close()
-    conn.close()
-
-    # ================== TOP 5 MAIORES DEVEDORES ==================
-    conn = mysql.connector.connect(**db_config)
-    cursor = conn.cursor(dictionary=True)
-
-    cursor.execute("""
-        SELECT c.empresa, c.subgrupo, c.uf, 
-               p.pedido, p.vencimento, 
-               p.saldo
-        FROM pedidosemabertosgc_crc p
-        JOIN clientessgc c ON c.clientesgc_id = p.clientesgc_id
-        ORDER BY p.saldo DESC
-        LIMIT 5
-    """)
-    top5emaberto = cursor.fetchall()
-
-    cursor.close()
-    conn.close()
-
-
-
-    totais = {
-        "tabela1": totais_tabela1,
-        "tabela2": totais_tabela2,
-        "tabela3": totais_tabela3,
-        "tabela4": totais_tabela4,
-        "tabela5": totais_tabela5,
-        "tabela6": totais_tabela6,
-        "tabela7": totais_tabela7,
-        "tabela8": totais_tabela8,
-        "tabela9": totais_tabela9,
-        "tabela10": totais_tabela10
-    }
-
-    return render_template(
-        "dashboardpedidoscrcFIN.html",
-        tabela1=tabela1,
-        tabela2=tabela2,
-        tabela3=tabela3,
-        tabela4=tabela4,
-        tabela5=tabela5,
-        tabela6=tabela6,
-        tabela7=tabela7,
-        tabela8=tabela8,
-        tabela9=tabela9,
-        tabela10=tabela10,
-        totais=totais,
-        top5=top5,
-        top5emaberto=top5emaberto
-    )
-
-#Detalhado pedidos
-@app.route("/detalhadopedidoscrc/<int:cliente_id>")
-def detalhadopedidoscrc(cliente_id):
-    conn = mysql.connector.connect(**db_config)
-    cursor = conn.cursor(dictionary=True)
-
-    # Consulta 1 - pedidos a vencer
-    cursor.execute("""
-        SELECT c.empresa,
-               p.vencimento,
-               c.uf,
-               p.valor,
-               p.saldo
-        FROM pedidosavencersgc_crc p
-        JOIN clientessgc c ON c.clientesgc_id = p.clientesgc_id
-        WHERE c.clientesgc_id = %s
-        ORDER BY p.vencimento
-    """, (cliente_id,))
-    detalhesavencer = cursor.fetchall()
-
-    # Consulta 2 - pedidos em aberto
-    cursor.execute("""
-        SELECT c.empresa,
-               p.vencimento,
-               c.uf,
-               p.valor,
-               p.saldo
-        FROM pedidosemabertosgc_crc p
-        JOIN clientessgc c ON c.clientesgc_id = p.clientesgc_id
-        WHERE c.clientesgc_id = %s
-        ORDER BY p.vencimento
-    """, (cliente_id,))
-    detalhesemaberto = cursor.fetchall()
-
-    cursor.close()
-    conn.close()
-
-    return jsonify({
-        "detalhesavencer": detalhesavencer,
-        "detalhesemaberto": detalhesemaberto
-    })
-
-
+    return render_template('uploadpedidosdiarioscrcFIN.html')
 
 #Cadastro clientes SGC
 @app.route('/clientessgc_crcFIN')
