@@ -31,7 +31,16 @@ def to_decimal(valor):
         return 0.0
     if isinstance(valor, (int, float)):
         return float(valor)
-    return float(str(valor).replace(",", "."))
+    
+    # Limpa símbolos de moeda e formatação brasileira
+    valor_str = str(valor).strip()
+    valor_str = valor_str.replace("R$", "").replace(".", "").replace(",", ".")
+    
+    try:
+        return float(valor_str)
+    except ValueError:
+        print(f"⚠️ Valor inválido para conversão: '{valor}'")
+        return 0.0
 
 def inserir_dados(dados_json, batch_size=100):
     try:
@@ -40,9 +49,9 @@ def inserir_dados(dados_json, batch_size=100):
 
         sql = """
         INSERT INTO pedidosdiariossgc_crc 
-        (pedido, clientesgc_id, razao_social, produto, data_pedido, data_credito, 
+        (pedido, clientesgc_id, razao_social, produto, condicao_pagamento, data_pedido, data_credito, 
         tipo, fase, valor, taxa, desconto, estorno, emissao, outros, faturas)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """
 
         # Abrir log para registrar clientes inexistentes
@@ -65,6 +74,7 @@ def inserir_dados(dados_json, batch_size=100):
                         cliente_id,
                         item.get("razao_social"),
                         item.get("produto"),
+                        item.get("condicao_pagamento"),
                         item.get("data_pedido"),
                         item.get("data_credito"),
                         item.get("tipo"),
