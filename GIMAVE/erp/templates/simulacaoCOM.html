@@ -179,11 +179,18 @@
             <label for="sobrenome">Sobrenome *</label>
             <input type="text" id="sobrenome" name="sobrenome" required>
             
+            <label for="empresa">Empresa *</label>
+            <input type="text" id="empresa" name="empresa" required>
+            
             <label for="email">Email *</label>
             <input type="text" id="email" name="email" required>
             
             <label for="telefone">Telefone *</label>
             <input type="tel" id="telefone" name="telefone" placeholder="Apenas números" required>
+
+            <label for="cnpj">CNPJ *</CNPJ>
+            <input type="text" id="cnpj" name="cnpj" placeholder="Apenas números" required>
+
 
             <label for="situacao">Situação *</label>
             <select id="situacao" name="situacao" required>
@@ -272,8 +279,10 @@
     const data = {
         nome: document.getElementById('nome').value.trim(),
         sobrenome: document.getElementById('sobrenome').value.trim(),
+        empresa: document.getElementById('empresa').value.trim(),
         email: document.getElementById('email').value.trim(),
         telefone: Number(document.getElementById('telefone').value),
+        cnpj: document.getElementById('cnpj').value.trim(),
         situacao: document.getElementById('situacao').value.trim(),
         qtde_cartoes: Number(document.getElementById('qtde_cartoes').value),
         valor_credito: parseFloat(document.getElementById('valor_credito').value.replace(/[R$\s\.]/g, '').replace(',', '.')),
@@ -386,8 +395,10 @@
             const dadosFormulario = {
                 nome: document.getElementById("nome").value,
                 sobrenome: document.getElementById("sobrenome").value,
+                empresa: document.getElementById("empresa").value,
                 email: document.getElementById("email").value,
                 telefone: document.getElementById("telefone").value,
+                cnpj: document.getElementById("cnpj").value,
                 situacao: document.getElementById("situacao").value,
                 qtde_cartoes: document.getElementById("qtde_cartoes").value,
                 valor_credito: document.getElementById("valor_credito").value,

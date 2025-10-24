@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, flash, jsonify, abort, url_for, session, send_file
+from flask import Flask, render_template, request, redirect, flash, jsonify, url_for, session, send_file
 from reportlab.lib.pagesizes import A4, landscape
 from reportlab.lib.colors import lightgrey
 from collections import defaultdict
@@ -14,6 +14,7 @@ from io import BytesIO
 import mysql.connector
 import pandas as pd
 import traceback
+import requests
 import locale
 import bcrypt
 import os
@@ -1389,8 +1390,10 @@ def gravar_propostaCOM():
         valores = (
             data['nome'],
             data['sobrenome'],
+            data['empresa'],
             data['email'],
             int(data['telefone']),
+            data['cnpj'],
             data['situacao'],
             int(data['qtde_cartoes']),
             tratar_valor(data['valor_credito']),
@@ -1418,7 +1421,8 @@ def gravar_propostaCOM():
         #Insert
         sql = """
             INSERT INTO simulacao_com (
-                nome, sobrenome, email, telefone, situacao, qtde_cartoes, 
+                nome, sobrenome, empresa, email, telefone, 
+                cnpj, situacao, qtde_cartoes, 
                 valor_credito, qtde_meses, taxa_adm, venda_cartoes,
                 qtde_cartoes_tag, rec_tags, qtde_cartoes_eus, rec_saude,
                 consumo_credenciado, confeccao_cartoes, custos_operacionais, custos_operacionais_qtde,
@@ -1433,18 +1437,47 @@ def gravar_propostaCOM():
                 %s, %s, %s, %s, %s, %s, %s, %s, %s,
                 %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
                 %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
-                %s, %s, %s, %s, %s 
+                %s, %s, %s, %s, %s, %s, %s 
             )
         """
         
         cursor.execute(sql, valores)
         conn.commit()
 
-        return jsonify({"message": "Proposta gravada com sucesso!"})
+
+        #Envio de dados para o Zoho
+
+        dados_zapier = {
+            "nome": data['nome'],
+            "sobrenome": data['sobrenome'],
+            "cnpj": data['cnpj'],
+            "empresa": data['empresa'],
+            "email": data['email'],
+            "telefone": data['telefone'],
+            "situacao": data['situacao'],
+            "numero_cartoes": int(data['qtde_cartoes']),
+            "montante_esperado": float(data['volumeContrato']),
+            "numero_tags": int(data['qtde_cartoes_tag'])
+
+
+        }
+
+        zapier_url = "https://hooks.zapier.com/hooks/catch/20524998/uru6feh/"
+        response = requests.post(zapier_url, json=dados_zapier)
+
+        if response.status_code == 200:
+            return jsonify({
+                "message": "Proposta gravada e dados enviados ao Zapier com sucesso!"
+            })
+        else:
+            return jsonify({
+                "message": "Proposta gravada, mas houve um erro ao enviar ao Zapier.",
+                "zapier_status": response.status_code
+            }), 500
 
     except Exception as e:
-        print("Erro ao gravar proposta:", e)
-        return jsonify({"message": "Erro ao gravar proposta."}), 500
+        print("❌ Erro ao gravar proposta:", e)
+        return "Erro ao gravar proposta.", 500
 
     finally:
         cursor.close()
@@ -2709,8 +2742,10 @@ def gravar_propostaprcCOM():
         valores = (
             data['nome'],
             data['sobrenome'],
+            data['empresa'],
             data['email'],
             int(data['telefone']),
+            data['cnpj'],
             data['situacao'],
             int(data['qtde_cartoes']),
             tratar_valor(data['valor_credito']),
@@ -2740,7 +2775,7 @@ def gravar_propostaprcCOM():
         #Funcionalidade
         sql = """
             INSERT INTO simulacaoprc_com (
-                nome, sobrenome, email, telefone, situacao, 
+                nome, sobrenome, empresa, email, telefone, cnpj,  situacao, 
                 qtde_cartoes, valor_credito, qtde_meses, taxa_adm, venda_cartoes,
                 qtde_cartoes_tag, rec_tags, qtde_cartoes_eus, rec_saude,
                 consumo_credenciado, confeccao_cartoes, custos_operacionais, custos_operacionais_qtde,
@@ -2755,22 +2790,51 @@ def gravar_propostaprcCOM():
                 %s, %s, %s, %s, %s, %s, %s, %s,
                 %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
                 %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
-                %s, %s, %s, %s, %s
+                %s, %s, %s, %s, %s, %s, %s
             )
         """
         
         cursor.execute(sql, valores)
         conn.commit()
 
-        return jsonify({"message": "Proposta gravada com sucesso!"})
+    #Envio de dados para o Zoho
+
+        dados_zapier = {
+            "nome": data['nome'],
+            "sobrenome": data['sobrenome'],
+            "cnpj": data['cnpj'],
+            "empresa": data['empresa'],
+            "email": data['email'],
+            "telefone": data['telefone'],
+            "situacao": data['situacao'],
+            "numero_cartoes": int(data['qtde_cartoes']),
+            "montante_esperado": float(data['volumeContrato']),
+            "numero_tags": int(data['qtde_cartoes_tag'])
+
+
+        }
+
+        zapier_url = "https://hooks.zapier.com/hooks/catch/20524998/uru6feh/"
+        response = requests.post(zapier_url, json=dados_zapier)
+
+        if response.status_code == 200:
+            return jsonify({
+                "message": "Proposta gravada e dados enviados ao Zapier com sucesso!"
+            })
+        else:
+            return jsonify({
+                "message": "Proposta gravada, mas houve um erro ao enviar ao Zapier.",
+                "zapier_status": response.status_code
+            }), 500
 
     except Exception as e:
-        print("Erro ao gravar proposta:", e)
-        return jsonify({"message": "Erro ao gravar proposta."}), 500
+        print("❌ Erro ao gravar proposta:", e)
+        return "Erro ao gravar proposta.", 500
 
     finally:
         cursor.close()
         conn.close()
+
 
 @app.route('/aprovacoesprcCOM')
 @modulo_requerido('COMERCIALGESTOR')
@@ -3413,8 +3477,10 @@ def gravar_propostaeucCOM():
         valores = (
             data['nome'],
             data['sobrenome'],
+            data['empresa'],
             data['email'],
             int(data['telefone']),
+            data['cnpj'],
             data['situacao'],
             int(data['qtde_cartoes']),
             tratar_valor(data['valor_credito']),
@@ -3439,7 +3505,7 @@ def gravar_propostaeucCOM():
         #Insert
         sql = """
             INSERT INTO simulacaoeuc_com (
-                nome, sobrenome, email, telefone, situacao,
+                nome, sobrenome, empresa, email, telefone, cnpj, situacao,
                 qtde_cartoes, valor_credito, qtde_meses, taxa_adm,
                 qtde_cartoes_tag, rec_tags, qtde_cartoes_eus, rec_saude,
                 consumo_credenciado, antecipacao_angels, apropriacao_credito, investimento,
@@ -3457,18 +3523,46 @@ def gravar_propostaeucCOM():
                 %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
                 %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
                 %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
-                %s, %s, %s, %s, %s, %s, %s
+                %s, %s, %s, %s, %s, %s, %s, %s, %s
             )
         """
         
         cursor.execute(sql, valores)
         conn.commit()
 
-        return jsonify({"message": "Proposta gravada com sucesso!"})
+        #Envio de dados para o Zoho
+
+        dados_zapier = {
+            "nome": data['nome'],
+            "sobrenome": data['sobrenome'],
+            "cnpj": data['cnpj'],
+            "empresa": data['empresa'],
+            "email": data['email'],
+            "telefone": data['telefone'],
+            "situacao": data['situacao'],
+            "numero_cartoes": int(data['qtde_cartoes']),
+            "montante_esperado": float(data['volumeContrato']),
+            "numero_tags": int(data['qtde_cartoes_tag'])
+
+
+        }
+
+        zapier_url = "https://hooks.zapier.com/hooks/catch/20524998/uru6feh/"
+        response = requests.post(zapier_url, json=dados_zapier)
+
+        if response.status_code == 200:
+            return jsonify({
+                "message": "Proposta gravada e dados enviados ao Zapier com sucesso!"
+            })
+        else:
+            return jsonify({
+                "message": "Proposta gravada, mas houve um erro ao enviar ao Zapier.",
+                "zapier_status": response.status_code
+            }), 500
 
     except Exception as e:
-        print("Erro ao gravar proposta:", e)
-        return jsonify({"message": "Erro ao gravar proposta."}), 500
+        print("❌ Erro ao gravar proposta:", e)
+        return "Erro ao gravar proposta.", 500
 
     finally:
         cursor.close()
@@ -5036,7 +5130,8 @@ def uploadpedidosdiarioscrcFIN():
                     cursor.execute("SELECT clientesgc_id FROM clientessgc")
                     ids_validos = {row["clientesgc_id"] for row in cursor.fetchall()}
 
-                    blacklist_clientes = {3147, 3148, 3149, 3150, 3151, 3152, 3153, 3154, 3155, 3156, 3157, 3158, 3159, 3160, 246, 1886}
+                    blacklist_clientes = {3147, 3148, 3149, 3150, 3151, 3152, 3153, 3154, 
+                    3155, 3156, 3157, 3158, 3159, 3160, 246, 1886, 1432, 3161, 3162}
 
                     # Prepara listas
                     dados_validos = []
@@ -5123,6 +5218,8 @@ def uploadpedidosdiarioscrcFIN():
             return redirect(url_for('uploadpedidosdiarioscrcFIN'))
 
     return render_template('uploadpedidosdiarioscrcFIN.html')
+
+
 
 #Cadastro clientes SGC
 @app.route('/clientessgc_crcFIN')
@@ -5259,6 +5356,44 @@ def clientessgc_crcFIN_sugestoes():
 
     return jsonify(resultados)
 
+
+
+#Negociações
+@app.route('/negeucatur_crcFIN')
+@modulo_requerido('CONTASARECEBER')
+def negeucatur_crcFIN():  
+    if 'username' not in session:
+        flash('Você precisa estar logado para acessar esta página.', 'warning')
+        return redirect(url_for('login'))
+
+    data_selecionada = request.args.get('data', default=str(date.today()))
+
+    conn = mysql.connector.connect(**db_config)
+    cursor = conn.cursor(dictionary=True)
+
+    try:
+        cursor.execute("""
+            SELECT t.*, h.descricao as historico_desc, e.empresa as empresa_nome, u.username as usuario
+            FROM transferenciasdiariascpg_fin t
+            LEFT JOIN historicos h ON t.id_historico = h.id_historico
+            LEFT JOIN empresas e ON t.id_empresa = e.id_empresa
+            LEFT JOIN usuarios u ON t.user_id = u.user_id
+            WHERE t.data_registro = %s
+            ORDER BY t.id_transferencia DESC
+        """, (data_selecionada,))
+        transferencias = cursor.fetchall()
+
+    except Exception as e:
+        flash(f'Erro ao carregar transferências: {e}', 'danger')
+        transferencias = []
+
+    finally:
+        cursor.close()
+        conn.close()
+
+    return render_template('transferenciasdiariascpgFIN.html',
+                           data_selecionada=data_selecionada,
+                           transferencias=transferencias)
 
 #------------------------------------------------------------------#
 if __name__ == '__main__':
