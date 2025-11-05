@@ -1462,7 +1462,7 @@ def gravar_propostaCOM():
 
         }
 
-        zapier_url = "https://hooks.zapier.com/hooks/catch/20524998/uru6feh/"
+        zapier_url = os.getenv("ZAPIER")
         response = requests.post(zapier_url, json=dados_zapier)
 
         if response.status_code == 200:
@@ -2814,7 +2814,7 @@ def gravar_propostaprcCOM():
 
         }
 
-        zapier_url = "https://hooks.zapier.com/hooks/catch/20524998/uru6feh/"
+        zapier_url = os.getenv("ZAPIER")
         response = requests.post(zapier_url, json=dados_zapier)
 
         if response.status_code == 200:
@@ -3547,7 +3547,7 @@ def gravar_propostaeucCOM():
 
         }
 
-        zapier_url = "https://hooks.zapier.com/hooks/catch/20524998/uru6feh/"
+        zapier_url = os.getenv("ZAPIER")
         response = requests.post(zapier_url, json=dados_zapier)
 
         if response.status_code == 200:

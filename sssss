@@ -1,0 +1,206 @@
+[33mcommit 3b826fcba931e4132509416c61966a2b75f99e10[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m
+Author: Guilherme Nicolao <guilhermenicolaodasilva45@gmail.com>
+Date:   Fri Oct 24 14:10:58 2025 -0300
+
+    feat:Agora as simulações, além de serem registrar no banco de dados, são enviadas ao Zoho via POST
+
+[33mcommit f0c73b5e46350ef914cab5073d7494c609e88d6d[m
+Author: Guilherme Nicolao <guilhermenicolaodasilva45@gmail.com>
+Date:   Fri Oct 10 10:40:51 2025 -0300
+
+    feat:Novas rotas e alterações relacionadas aos simuladores do Comercial e a inserção de pedidos diários do SGC
+
+[33mcommit 045553f97c5b848f2019ff9772692b60d4fa40e0[m
+Author: Guilherme Nicolao <guilhermenicolaodasilva45@gmail.com>
+Date:   Fri Oct 10 10:40:09 2025 -0300
+
+    feat:Nova rota para inserção dos pedidos diários do SGC ao ERP
+
+[33mcommit b0b52659f6a8d6c95de93c37b29b6eca0f9f3f19[m
+Author: Guilherme Nicolao <guilhermenicolaodasilva45@gmail.com>
+Date:   Fri Oct 10 10:39:24 2025 -0300
+
+    script para realizar múltiplas inserções ao banco de dados
+
+[33mcommit 138853acaab65e78f4a984c32c5fa7ebde3690e9[m
+Author: Guilherme Nicolao <guilhermenicolaodasilva45@gmail.com>
+Date:   Fri Oct 10 10:38:49 2025 -0300
+
+    feat:Atualizado as rotas relacionadas as simulações, que agora abrigam os seguintes novos campos: nome, sobrenome, telefone, e-mail e situação
+
+[33mcommit 802c93b2fb51dcc6b672bba5ab0bb3443adda8e0[m
+Author: Guilherme Nicolao <guilhermenicolaodasilva45@gmail.com>
+Date:   Mon Sep 8 08:21:13 2025 -0300
+
+    Arquivos temporários que estão auxiliando na inserção de dados no DB
+
+[33mcommit 4ab690287883e9875b2aef24fe9f1133223a4b76[m
+Author: Guilherme Nicolao <guilhermenicolaodasilva45@gmail.com>
+Date:   Mon Sep 8 08:20:36 2025 -0300
+
+    feat:Novas rotas dos pedidos em aberto
+
+[33mcommit 36f874a5c768afa484c2b605eb573b988cc5eb33[m
+Author: Guilherme Nicolao <guilhermenicolaodasilva45@gmail.com>
+Date:   Mon Sep 8 08:20:19 2025 -0300
+
+    feat:Novas rotas dos pedidos em aberto
+
+[33mcommit 2feac2014337a26d77a77d75a2cc8a29f06fc503[m
+Author: Guilherme Nicolao <guilhermenicolaodasilva45@gmail.com>
+Date:   Mon Sep 8 08:20:02 2025 -0300
+
+    feat:Novas rotas dos pedidos em aberto
+
+[33mcommit aa96e0d88795a37cc941187341eaf88996945bef[m
+Author: Guilherme Nicolao <guilhermenicolaodasilva45@gmail.com>
+Date:   Mon Sep 8 08:19:25 2025 -0300
+
+    feat:Novas rotas dos pedidos em aberto
+
+[33mcommit 9d92fd012d113398de606a146e3cf75e1802d3ae[m
+Author: Guilherme Nicolao <guilhermenicolaodasilva45@gmail.com>
+Date:   Mon Sep 1 10:25:17 2025 -0300
+
+    Updated
+
+[33mcommit 64a5ba7c1586d58a5e006ce6bf723719dc49ff2b[m
+Author: Guilherme Nicolao <guilhermenicolaodasilva45@gmail.com>
+Date:   Mon Sep 1 10:21:04 2025 -0300
+
+    Trash
+
+[33mcommit 1d4555d85b81fd6205bec80e3cdf7a0ad06c56c0[m
+Author: Guilherme Nicolao <guilhermenicolaodasilva45@gmail.com>
+Date:   Mon Sep 1 10:20:40 2025 -0300
+
+    Atualizado/Updated
+
+[33mcommit 8a79e0a77975d1e3d691c9b707377636cbdc4983[m
+Author: Guilherme Nicolao <guilhermenicolaodasilva45@gmail.com>
+Date:   Fri Aug 29 08:17:59 2025 -0300
+
+    feat:Novas rotas: Upload de pedidos a vencer, cadastro de clientes e dashboard
+
+[33mcommit 8bfb82c5d042f32da7eb6c4ec7dc17d6c161b09a[m
+Author: Guilherme Nicolao <guilhermenicolaodasilva45@gmail.com>
+Date:   Fri Aug 29 08:17:22 2025 -0300
+
+    chore:Adicionado a rota dos templates ao menu lateral
+
+[33mcommit aeb248106282f817aec7cbcc414a07da460b5922[m
+Author: Guilherme Nicolao <guilhermenicolaodasilva45@gmail.com>
+Date:   Fri Aug 29 08:16:51 2025 -0300
+
+    feat:Adicionado as novas rotas de upload e dash dos pedidos a vencer do SGC
+
+[33mcommit 6b1f7415fafe2be632dd0aa66ec341ddc238633a[m
+Author: Guilherme Nicolao <guilhermenicolaodasilva45@gmail.com>
+Date:   Tue Aug 26 15:55:56 2025 -0300
+
+    feat:Criação do template de transferências diárias
+
+[33mcommit 9ed656b97eae09d5e3372131b7a90b7a73253295[m
+Author: Guilherme Nicolao <guilhermenicolaodasilva45@gmail.com>
+Date:   Tue Aug 26 15:54:21 2025 -0300
+
+    feat:Template para visualização dos credenciados a pagar
+
+[33mcommit 2b3f009c7c0357afc9d491ee5cd0c26252da2421[m
+Author: Guilherme Nicolao <guilhermenicolaodasilva45@gmail.com>
+Date:   Tue Aug 26 15:53:48 2025 -0300
+
+    feat:Adicionado os templates no menu lateral
+
+[33mcommit 8f0fc3d3bbb302fca52b24bebea8af81dfbccd9d[m
+Author: Guilherme Nicolao <guilhermenicolaodasilva45@gmail.com>
+Date:   Tue Aug 26 15:53:28 2025 -0300
+
+    feat:Novas rotas de credenciados a pagar e transferências diárias
+
+[33mcommit e45d11cd44fd3955d4b5cf7e1f413c77d04405c0[m
+Author: holasoyGui <42822367+GuilhermeNicolao@users.noreply.github.com>
+Date:   Tue Aug 12 13:37:25 2025 -0300
+
+    chore: Atualizei o README
+
+[33mcommit 7da03a156f2d05f057f5305e4f8c58c1b2aaf5bb[m
+Author: Guilherme Nicolao <guilhermenicolaodasilva45@gmail.com>
+Date:   Mon Aug 4 17:22:27 2025 -0300
+
+    feat:Criação do template de upload dos arquivos de reembolsos diários gerados no SGC.
+
+[33mcommit 51456ce3f98dd61a911ce8b38722d0fc7a1c285e[m
+Author: Guilherme Nicolao <guilhermenicolaodasilva45@gmail.com>
+Date:   Mon Aug 4 17:21:55 2025 -0300
+
+    feat:Criação do template de visualização dos reembolsos diários
+
+[33mcommit ae44ecd5577f812ed195cea8a277003297246a98[m
+Author: Guilherme Nicolao <guilhermenicolaodasilva45@gmail.com>
+Date:   Mon Aug 4 17:21:20 2025 -0300
+
+    chore:Adicionado o path dos templates ao menu lateral
+
+[33mcommit 2c8b2a4caed5ec53ea262088ee46639057dfa4e6[m
+Author: Guilherme Nicolao <guilhermenicolaodasilva45@gmail.com>
+Date:   Mon Aug 4 17:20:55 2025 -0300
+
+    feat:Criação das rotas de upload do arquivo de credenciados, visualização e atualização dos reembolsos nos templates
+
+[33mcommit 28bc7531fba987baf28968eced3ae5583b65fa92[m
+Author: holasoyGui <42822367+GuilhermeNicolao@users.noreply.github.com>
+Date:   Mon Jul 28 14:23:36 2025 -0300
+
+    Finalmente criei um README.md
+
+[33mcommit 04603b237bb9f6c363e0b861322e62039a156a61[m
+Author: Guilherme Nicolao <guilhermenicolaodasilva45@gmail.com>
+Date:   Mon Jul 28 14:05:45 2025 -0300
+
+    Exclusão de alguns códigos inoperantes
+
+[33mcommit b37db1bd210d8d92a5f5acecd2f8799cb73305c1[m
+Author: Guilherme Nicolao <guilhermenicolaodasilva45@gmail.com>
+Date:   Wed Jul 23 15:50:56 2025 -0300
+
+    chore:Corrigido o status da última atualização, que estava sendo feita a cada minuto e agora está sendo feita a cada hora, junto com o reload da página
+
+[33mcommit a657c2ee4f91f1d833910a643cb0b32c0d5f4c91[m
+Author: Guilherme Nicolao <guilhermenicolaodasilva45@gmail.com>
+Date:   Wed Jul 23 15:50:19 2025 -0300
+
+    feat:Adicionado uma nova rota para assegurar que a sessão do DASH não caia (trabalhando na hipótese de a TV estar limpando os cookies periodicamente)
+
+[33mcommit d64897b24460c3ae05184db0c1670d56d047dc69[m
+Author: Guilherme Nicolao <guilhermenicolaodasilva45@gmail.com>
+Date:   Tue Jul 22 08:17:59 2025 -0300
+
+    feat:Revisado todas as rotas e comentado todos os trechos para posterior localização de funcionalidades
+
+[33mcommit 2e6c82264d22e730a7090e75175183155a739e2a[m
+Author: Guilherme Nicolao <guilhermenicolaodasilva45@gmail.com>
+Date:   Tue Jul 22 08:17:45 2025 -0300
+
+    feat:Retirei a funcionalidade de informar "DESATUALIZADO" quando passa o prazo de 07 dias
+
+[33mcommit 045c18deb15b2c0bb29ad34dadae80feeafd24cf[m
+Author: Guilherme Nicolao <guilhermenicolaodasilva45@gmail.com>
+Date:   Tue Jul 22 08:13:15 2025 -0300
+
+    feat:Revisado todas as rotas e comentado todos os trechos para posterior localização de funcionalidades
+
+[33mcommit 86dd362d377cca6761446eda178fb550ea95be74[m
+Author: Guilherme Nicolao <guilhermenicolaodasilva45@gmail.com>
+Date:   Wed Jul 16 13:44:17 2025 -0300
+
+    feat:Novos templates de parâmetros, simulações, aprovações e relatórios do produto Eucard (próprio).
+
+[33mcommit e503ef243068ab69f537c637e36d30aa6f8b59c8[m
+Author: Guilherme Nicolao <guilhermenicolaodasilva45@gmail.com>
+Date:   Wed Jul 16 13:43:44 2025 -0300
+
+    feat:Adicionado as novas rotas ao menu lateral
+
+[33mcommit 13764c91044a79edf80ab54ba8b6e1e17263bd84[m
+Author: Gu
