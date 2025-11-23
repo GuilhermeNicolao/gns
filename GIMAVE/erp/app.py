@@ -122,7 +122,7 @@ def login():
                         cursor.execute("SELECT modulo FROM modulos WHERE user_id = %s", (user_id,))
                         modulos = [row[0] for row in cursor.fetchall()]
                     else:
-                        modulos = ['COMPRAS', 'COMERCIALGESTOR' , 'COMERCIAL', 'FINANCEIRO', 'CONTASAPAGAR','CONTASARECEBER'] #ACESSO ADMIN!!
+                        modulos = ['COMPRAS', 'COMERCIALGESTOR' , 'COMERCIAL', 'FINANCEIRO', 'CONTASAPAGAR', 'CONTASARECEBER', 'COMPLIANCE'] #ACESSO ADMIN!!
 
                     session['modulos'] = modulos
                     flash('Login realizado com sucesso!', 'success')
@@ -243,7 +243,7 @@ def gerenciar_modulos(user_id):
         flash('Você não tem permissão para acessar esta página.', 'danger')
         return redirect(url_for('menu_principal'))  
 
-    modulos_disponiveis = ['COMPRAS', 'COMERCIALGESTOR' , 'COMERCIAL', 'FINANCEIRO', 'CONTASAPAGAR','CONTASARECEBER']
+    modulos_disponiveis = ['COMPRAS', 'COMERCIALGESTOR' , 'COMERCIAL', 'FINANCEIRO', 'CONTASAPAGAR', 'CONTASARECEBER', 'COMPLIANCE'] 
 
     try:
         conexao = mysql.connector.connect(**db_config)
@@ -5355,46 +5355,137 @@ def clientessgc_crcFIN_sugestoes():
     conn.close()
 
     return jsonify(resultados)
+#------------------------------------------------------------------#
 
 
 
-#Negociações
-@app.route('/negeucatur_crcFIN')
-@modulo_requerido('CONTASARECEBER')
-def negeucatur_crcFIN():  
+
+
+#---------COMPLIANCE-------------------------------#
+
+@app.route('/uploadcredenciadosCPL', methods=['GET', 'POST'])
+@modulo_requerido('COMPLIANCE')
+def uploadcredenciadosCPL():
+    # Verificação de sessão ativa
     if 'username' not in session:
         flash('Você precisa estar logado para acessar esta página.', 'warning')
         return redirect(url_for('login'))
 
-    data_selecionada = request.args.get('data', default=str(date.today()))
+    if request.method == 'POST':
+        arquivo = request.files.get('arquivo_excel')
 
-    conn = mysql.connector.connect(**db_config)
-    cursor = conn.cursor(dictionary=True)
+        if not arquivo:
+            flash('Nenhum arquivo enviado.', 'erro')
+            return redirect(url_for('uploadcredenciadosCPL'))
 
-    try:
-        cursor.execute("""
-            SELECT t.*, h.descricao as historico_desc, e.empresa as empresa_nome, u.username as usuario
-            FROM transferenciasdiariascpg_fin t
-            LEFT JOIN historicos h ON t.id_historico = h.id_historico
-            LEFT JOIN empresas e ON t.id_empresa = e.id_empresa
-            LEFT JOIN usuarios u ON t.user_id = u.user_id
-            WHERE t.data_registro = %s
-            ORDER BY t.id_transferencia DESC
-        """, (data_selecionada,))
-        transferencias = cursor.fetchall()
+        try:
+            # Leitura do Excel
+            df = pd.read_excel(arquivo, engine='openpyxl')
 
-    except Exception as e:
-        flash(f'Erro ao carregar transferências: {e}', 'danger')
-        transferencias = []
+            # Verifica se a coluna Q existe (índice 16)
+            if len(df.columns) <= 16:
+                flash('O arquivo não possui a formatação esperada!', 'erro')
+                return redirect(url_for('uploadcredenciadosCPL'))
 
-    finally:
-        cursor.close()
-        conn.close()
+            # Renomeia colunas conforme tabela
+            df.columns = [
+                "codigo",
+                "razao_social",
+                "nome_fantasia",
+                "endereco",
+                "numero",
+                "complemento",
+                "bairro",
+                "cidade",
+                "uf",
+                "isento_tarifa",
+                "produto",
+                "tipo_estabelecimento",
+                "taxa_servico",
+                "taxa_interconexao",
+                "idpj_produto",
+                "data_cadastro",
+                "data_utransacao",
+            ]
 
-    return render_template('transferenciasdiariascpgFIN.html',
-                           data_selecionada=data_selecionada,
-                           transferencias=transferencias)
+            
+            if not df.empty:
+                try:
+                    conn = mysql.connector.connect(**db_config)
+                    cursor = conn.cursor(dictionary=True)
 
-#------------------------------------------------------------------#
+                    # Prepara listas
+                    dados_validos = []
+
+                    for _, row in df.iterrows():
+
+                        dados_validos.append((
+                            int(row["codigo"]),
+                            str(row["razao_social"]),
+                            str(row["nome_fantasia"]),
+                            str(row["endereco"]),
+                            int(row["numero"]),
+                            str(row["complemento"]),
+                            str(row["bairro"]),
+                            str(row["cidade"]),
+                            str(row["uf"]),
+                            str(row["isento_tarifa"]),
+                            str(row["produto"]),
+                            str(row["tipo_estabelecimento"]),
+                            float(row["taxa_servico"]),
+                            float(row["taxa_interconexao"]),
+                            int(row["idpj_produto"]),
+                            str(row["data_cadastro"]),
+                            str(row["data_utransacao"]),
+                        ))
+
+                    # Se houver dados válidos, insere
+                    if dados_validos:
+                        query = """
+                            INSERT INTO credenciados_cpl
+                            (codigo, razao_social, nome_fantasia, endereco, numero, complemento, bairro, cidade, uf, isento_tarifa, produto,
+                            tipo_estabelecimento, taxa_servico, taxa_interconexao, idpj_produto, data_cadastro, data_utransacao)
+                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                                codigo = VALUES(codigo),
+                                razao_social = VALUES(razao_social),
+                                nome_fantasia = VALUES(nome_fantasia),
+                                endereco = VALUES(endereco),
+                                numero = VALUES(numero),
+                                complemento = VALUES(complemento),
+                                bairro = VALUES(bairro),
+                                cidade = VALUES(cidade),
+                                uf = VALUES(uf),
+                                isento_tarifa = VALUES(isento_tarifa),
+                                produto = VALUES(produto),
+                                tipo_estabelecimento = VALUES(tipo_estabelecimento),
+                                taxa_servico = VALUES(taxa_servico),
+                                taxa_interconexao = VALUES(taxa_interconexao),
+                                idpj_produto = VALUES(idpj_produto),
+                                data_cadastro = VALUES(data_cadastro),
+                                data_utransacao = VALUES(data_utransacao)
+                        """
+                        cursor.executemany(query, dados_validos)
+                        conn.commit()
+                        flash(f"Credenciados importados com sucesso!", "sucesso")
+
+                except Error as db_error:
+                    flash(f"Erro ao atualizar os dados no banco: {db_error}", "erro")
+
+                finally:
+                    cursor.close()
+                    conn.close()
+
+            else:
+                flash("Nenhum credenciado encontrado para importar.", "info")
+
+        except Exception as e:
+            flash(f"Erro ao processar o arquivo: {str(e)}", "erro")
+            return redirect(url_for('uploadcredenciadosCPL'))
+
+    return render_template('uploadcredenciadosCPL.html')
+
+
+
+
 if __name__ == '__main__':
     app.run(debug=True) 
