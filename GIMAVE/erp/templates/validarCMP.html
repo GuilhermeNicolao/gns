@@ -241,7 +241,7 @@
                 <input type="hidden" name="data_fim" value="{{ request.args.get('data_fim') }}">
                 {% set dias_passados = (datetime.utcnow().date() - o.dt).days %}
 
-                {% if dias_passados > 7 %}
+                {% if dias_passados > 15 %}
                     {% if o.status == 'Pendente' %}
                         <button type="submit" disabled title="Expirado">Validar</button>
                     {% else %}
