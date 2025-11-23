@@ -5,6 +5,7 @@ CMP - Compras
 CPG - Contas a Pagar
 CRC - Contas a Receber
 CTB - Contabilidade
+CLP - Compliance
 LIC - Licitação
 OPE - Operacional
 EST - Estoque
