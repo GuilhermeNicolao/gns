@@ -211,6 +211,24 @@
         </div>
         {% endif %}
 
+
+        <!-- Compliance-->
+        {% if 'COMPLIANCE' in session['modulos'] %}
+        <div class="dropdown">
+            <div class="dropdown-btn">Compliance (1)</div>
+            <div class="dropdown-container">
+
+                <div class="dropdown">
+                    <div class="dropdown-btn"><b>Contratos</b></div>
+                    <div class="dropdown-container">
+                        <a href="{{ url_for('uploadcredenciadosCPL') }}">Upload Lista Credenciados</a>
+                </div>
+            </div>
+        </div>
+        </div>
+        {% endif %}
+
+
         <!-- Financeiro -->
         {% if 'FINANCEIRO' in session['modulos'] %}
         <div class="dropdown">
