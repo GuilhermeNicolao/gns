@@ -122,7 +122,7 @@ def login():
                         cursor.execute("SELECT modulo FROM modulos WHERE user_id = %s", (user_id,))
                         modulos = [row[0] for row in cursor.fetchall()]
                     else:
-                        modulos = ['COMPRAS', 'COMERCIALGESTOR' , 'COMERCIAL', 'FINANCEIRO', 'CONTASAPAGAR', 'CONTASARECEBER', 'COMPLIANCE'] #ACESSO ADMIN!!
+                        modulos = ['COMPRAS', 'COMERCIALGESTOR' , 'COMERCIAL', 'FINANCEIRO', 'CONTASAPAGAR', 'CONTASARECEBER', 'COMPLIANCE', 'PARAMETROS'] #ACESSO ADMIN!!
 
                     session['modulos'] = modulos
                     flash('Login realizado com sucesso!', 'success')
@@ -243,7 +243,7 @@ def gerenciar_modulos(user_id):
         flash('Você não tem permissão para acessar esta página.', 'danger')
         return redirect(url_for('menu_principal'))  
 
-    modulos_disponiveis = ['COMPRAS', 'COMERCIALGESTOR' , 'COMERCIAL', 'FINANCEIRO', 'CONTASAPAGAR', 'CONTASARECEBER', 'COMPLIANCE'] 
+    modulos_disponiveis = ['COMPRAS', 'COMERCIALGESTOR' , 'COMERCIAL', 'FINANCEIRO', 'CONTASAPAGAR', 'CONTASARECEBER', 'COMPLIANCE', 'PARAMETROS'] 
 
     try:
         conexao = mysql.connector.connect(**db_config)
@@ -282,6 +282,167 @@ def menu_principal():
         flash('Você precisa estar logado para acessar esta página.', 'warning')
         return redirect(url_for('login'))
     return render_template('homepage.html')
+#-------------------------------------------------------#
+
+
+
+
+# ----------ROTAS PARÂMETROS---------------------#
+#Rotas de cadastro de indexadores
+@app.route('/indexadores')
+@modulo_requerido('PARAMETROS')
+def indexadores():
+    if 'username' not in session:
+        flash('Você precisa estar logado para acessar esta página.', 'warning')
+        return redirect(url_for('login'))
+    return render_template('indexadores.html')
+
+@app.route('/api/indexadores')
+@modulo_requerido('PARAMETROS')
+def listar_indexadores():
+    if 'username' not in session:
+        flash('Você precisa estar logado para acessar esta página.', 'warning')
+        return redirect(url_for('login'))
+    
+    conn = mysql.connector.connect(**db_config)
+    cursor = conn.cursor(dictionary=True)
+
+    cursor.execute("""
+        SELECT 
+            cod_indexador,
+            nome,
+            mes,
+            ano,
+            pct
+        FROM indexadores
+        ORDER BY nome
+    """)
+    
+    indexadores = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+
+    return jsonify(indexadores)
+
+@app.route('/cadastrar_indexador', methods=['POST'])
+@modulo_requerido('PARAMETROS')
+def cadastrar_indexador():
+    if 'username' not in session:
+        flash('Você precisa estar logado para acessar esta página.', 'warning')
+        return redirect(url_for('login'))
+
+    try:
+        # Coleta de dados do formulário
+        nome = request.form['nome'].strip()
+        mes = request.form['mes'].strip()
+        ano = request.form['ano'].strip()
+        pct = request.form['pct'].strip()
+
+        # Validação simples
+        if not nome or not mes or not ano or not pct:
+            flash('Preencha todos os campos obrigatórios!', 'erro')
+            return redirect('/indexadores')
+
+        conn = mysql.connector.connect(**db_config)
+        cursor = conn.cursor(dictionary=True)
+
+        # Verifica duplicidade (nome + mês + ano)
+        cursor.execute("""
+            SELECT COUNT(*) AS total 
+            FROM indexadores 
+            WHERE LOWER(TRIM(nome)) = LOWER(%s)
+              AND LOWER(TRIM(mes)) = LOWER(%s)
+              AND ano = %s
+        """, (nome, mes, ano))
+
+        if cursor.fetchone()['total'] > 0:
+            flash("Já existe um indexador cadastrado com esse Nome, Mês e Ano.", "erro")
+            return redirect('/indexadores')
+
+        # Inserção
+        query = """
+            INSERT INTO indexadores (nome, mes, ano, pct)
+            VALUES (%s, %s, %s, %s)
+        """
+        cursor.execute(query, (nome, mes, ano, pct))
+        conn.commit()
+
+        flash('Indexador cadastrado com sucesso!', 'sucesso')
+        return redirect('/indexadores')
+
+    except mysql.connector.Error as err:
+        flash(f'Erro ao inserir os dados: {err}', 'erro')
+        return redirect('/indexadores')
+
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
+@app.route('/api/indexadores/<int:id>', methods=['PUT'])
+@modulo_requerido('PARAMETROS')
+def editar_indexadores(id):
+    data = request.json
+
+    novo_nome = data.get('nome', '').strip()
+    novo_mes = data.get('mes', '').strip()
+    novo_ano = data.get('ano')
+    novo_pct = data.get('pct')
+
+    # Validações
+    if not novo_nome or not novo_mes or not novo_ano or novo_pct is None:
+        return jsonify({'erro': 'Todos os campos (nome, mes, ano, pct) são obrigatórios.'}), 400
+
+    try:
+        conn = mysql.connector.connect(**db_config)
+        cursor = conn.cursor(dictionary=True)
+
+        # Verificar duplicidade (nome + mes + ano)
+        cursor.execute("""
+            SELECT COUNT(*) AS total FROM indexadores
+            WHERE LOWER(TRIM(nome)) = LOWER(%s)
+              AND LOWER(TRIM(mes)) = LOWER(%s)
+              AND ano = %s
+              AND cod_indexador != %s
+        """, (novo_nome, novo_mes, novo_ano, id))
+
+        if cursor.fetchone()['total'] > 0:
+            return jsonify({'erro': 'Já existe um indexador com esse Nome, Mês e Ano.'}), 400
+
+        # Atualizar registro
+        cursor.execute("""
+            UPDATE indexadores
+            SET nome = %s, mes = %s, ano = %s, pct = %s
+            WHERE cod_indexador = %s
+        """, (novo_nome, novo_mes, novo_ano, novo_pct, id))
+
+        conn.commit()
+
+        cursor.close()
+        conn.close()
+
+        return jsonify({'sucesso': True})
+
+    except mysql.connector.Error as err:
+        return jsonify({'erro': str(err)}), 500  
+
+@app.route('/api/indexadores/<int:id>', methods=['DELETE'])
+@modulo_requerido('PARAMETROS')
+def excluir_indexadores(id):
+    conn = mysql.connector.connect(**db_config)
+    cursor = conn.cursor()
+
+    cursor.execute("DELETE FROM indexadores WHERE cod_indexador = %s", (id,))
+    conn.commit()
+
+    cursor.close()
+    conn.close()
+
+    return jsonify({'sucesso': True})
+
+
 #-------------------------------------------------------#
 
 
@@ -1721,7 +1882,7 @@ def relatorio1COM():
 
             dados = [
                 str(sim['id']),
-                nomes_usuarios.get(sim['user_id'], f"ID {sim['user_id']}"),
+                nomes_usuarios.get(sim['user_id'], f"{sim['user_id']}"),
                 str(sim['qtde_cartoes']),
                 f"R$ {sim['valor_credito']:.2f}",
                 str(sim['qtde_meses']),
@@ -5361,8 +5522,7 @@ def clientessgc_crcFIN_sugestoes():
 
 
 
-#---------COMPLIANCE-------------------------------#
-
+#-------------------------COMPLIANCE-------------------------------#
 @app.route('/uploadcredenciadosCPL', methods=['GET', 'POST'])
 @modulo_requerido('COMPLIANCE')
 def uploadcredenciadosCPL():
@@ -5414,39 +5574,76 @@ def uploadcredenciadosCPL():
                     conn = mysql.connector.connect(**db_config)
                     cursor = conn.cursor(dictionary=True)
 
-                    # Prepara listas
+                    # Buscar % de IPCA
+                    cursor.execute("""
+                        SELECT mes, ano, pct
+                        FROM indexadores
+                        WHERE nome = 'IPCA'
+                    """)
+                    indexadores = cursor.fetchall()
+
+                    if not indexadores:
+                        flash("Nenhum indexador IPCA encontrado para calcular as taxas.", "erro")
+                        return redirect(url_for('uploadcredenciadosCPL'))
+                    
+                    # Cria um dicionário {mes: pct} para lookup rápido
+                    ipca_por_mes = {row['mes']: float(row['pct']) for row in indexadores}
+
+                    # Prepara lista de dados válidos
                     dados_validos = []
 
                     for _, row in df.iterrows():
 
+                        taxa_servico = None if pd.isna(row["taxa_servico"]) else float(row["taxa_servico"])
+                        taxa_interconexao = None if pd.isna(row["taxa_interconexao"]) else float(row["taxa_interconexao"])
+
+                        # Extrai o mês do data_cadastro
+                        mes_cadastro = row["data_cadastro"].month  # .month retorna 1-12
+
+                        # Busca o pct do mês correspondente, default 0 se não achar
+                        pct = ipca_por_mes.get(mes_cadastro, 0)
+
+                        # Calcula os valores ajustados
+                        taxa_servico_n = None if taxa_servico is None else taxa_servico * (1 + (pct/100))
+                        taxa_inter_n = None if taxa_interconexao is None else taxa_interconexao * (1 + (pct/100))
+
                         dados_validos.append((
-                            int(row["codigo"]),
-                            str(row["razao_social"]),
-                            str(row["nome_fantasia"]),
-                            str(row["endereco"]),
-                            int(row["numero"]),
-                            str(row["complemento"]),
-                            str(row["bairro"]),
-                            str(row["cidade"]),
-                            str(row["uf"]),
-                            str(row["isento_tarifa"]),
-                            str(row["produto"]),
-                            str(row["tipo_estabelecimento"]),
-                            float(row["taxa_servico"]),
-                            float(row["taxa_interconexao"]),
-                            int(row["idpj_produto"]),
-                            str(row["data_cadastro"]),
-                            str(row["data_utransacao"]),
+                            None if pd.isna(row["codigo"]) else int(row["codigo"]),
+                            None if pd.isna(row["razao_social"]) else row["razao_social"],
+                            None if pd.isna(row["nome_fantasia"]) else row["nome_fantasia"],
+                            None if pd.isna(row["endereco"]) else row["endereco"],
+                            None if pd.isna(row["numero"]) else str(row["numero"]),
+                            None if pd.isna(row["complemento"]) else row["complemento"],
+                            None if pd.isna(row["bairro"]) else row["bairro"],
+                            None if pd.isna(row["cidade"]) else row["cidade"],
+                            None if pd.isna(row["uf"]) else row["uf"],
+                            None if pd.isna(row["isento_tarifa"]) else row["isento_tarifa"],
+                            None if pd.isna(row["produto"]) else row["produto"],
+                            None if pd.isna(row["tipo_estabelecimento"]) else row["tipo_estabelecimento"],
+                            taxa_servico,
+                            taxa_servico_n,          
+                            taxa_interconexao,
+                            taxa_inter_n, 
+                            None if pd.isna(row["idpj_produto"]) else int(row["idpj_produto"]),
+                            None if pd.isna(row["data_cadastro"]) else row["data_cadastro"],
+                            None if pd.isna(row["data_utransacao"]) else row["data_utransacao"],
                         ))
 
                     # Se houver dados válidos, insere
                     if dados_validos:
                         query = """
-                            INSERT INTO credenciados_cpl
-                            (codigo, razao_social, nome_fantasia, endereco, numero, complemento, bairro, cidade, uf, isento_tarifa, produto,
-                            tipo_estabelecimento, taxa_servico, taxa_interconexao, idpj_produto, data_cadastro, data_utransacao)
-                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                                codigo = VALUES(codigo),
+                            INSERT INTO credenciados_cpl (
+                                codigo, razao_social, nome_fantasia, endereco, numero, complemento,
+                                bairro, cidade, uf, isento_tarifa, produto, tipo_estabelecimento,
+                                taxa_servico, taxa_servico_n, taxa_interconexao, taxa_interconexao_n, idpj_produto, data_cadastro, data_utransacao
+                            )
+                            VALUES (
+                                %s, %s, %s, %s, %s, %s,
+                                %s, %s, %s, %s, %s, %s,
+                                %s, %s, %s, %s, %s, %s,
+                                %s
+                            )
+                            ON DUPLICATE KEY UPDATE
                                 razao_social = VALUES(razao_social),
                                 nome_fantasia = VALUES(nome_fantasia),
                                 endereco = VALUES(endereco),
@@ -5459,7 +5656,9 @@ def uploadcredenciadosCPL():
                                 produto = VALUES(produto),
                                 tipo_estabelecimento = VALUES(tipo_estabelecimento),
                                 taxa_servico = VALUES(taxa_servico),
+                                taxa_servico_n = VALUES(taxa_servico_n),
                                 taxa_interconexao = VALUES(taxa_interconexao),
+                                taxa_interconexao_n = VALUES(taxa_interconexao_n),
                                 idpj_produto = VALUES(idpj_produto),
                                 data_cadastro = VALUES(data_cadastro),
                                 data_utransacao = VALUES(data_utransacao)
@@ -5484,6 +5683,182 @@ def uploadcredenciadosCPL():
 
     return render_template('uploadcredenciadosCPL.html')
 
+@app.route("/visualizarcredenciadosCPL")
+def visualizarcredenciadosCPL():
+    if 'username' not in session:
+        flash('Você precisa estar logado para acessar esta página.', 'warning')
+        return redirect(url_for('login'))
+
+    return render_template("visualizarcredenciadosCPL.html")
+
+@app.route("/api/credenciadosCPL", methods=["POST"])
+def api_credenciadosCPL():
+
+    if 'username' not in session:
+        return jsonify({"error": "unauthorized"}), 403
+
+    draw = int(request.form.get("draw", 1))
+    start = int(request.form.get("start", 0))
+    length = int(request.form.get("length", 50))
+    search_value = request.form.get("search[value]", "")
+
+    data_inicio = request.form.get("data_inicio")
+    data_fim = request.form.get("data_fim")
+
+    order_column_index = request.form.get("order[0][column]", "0")
+    order_column_name = [
+        "codigo",
+        "razao_social",
+        "nome_fantasia",
+        "produto",
+        "taxa_servico",
+        "taxa_servico_n",
+        "taxa_interconexao",
+        "taxa_interconexao_n",
+        "data_cadastro",
+        "data_utransacao"
+    ][int(order_column_index)]
+
+    order_direction = request.form.get("order[0][dir]", "asc")
+    order_sql = "ASC" if order_direction == "asc" else "DESC"
+
+    conn = mysql.connector.connect(**db_config)
+    cursor = conn.cursor(dictionary=True)
+
+    # total sem filtros
+    cursor.execute("SELECT COUNT(*) AS total FROM credenciados_cpl")
+    total = cursor.fetchone()["total"]
+
+    # filtro
+    base_query = "FROM credenciados_cpl WHERE 1=1 "
+
+    filtros = []
+    params = []
+
+    if search_value:
+        filtros.append("""
+            (razao_social LIKE %s
+            OR nome_fantasia LIKE %s
+            OR cidade LIKE %s)
+        """)
+        v = f"%{search_value}%"
+        params += [v, v, v]
+
+    if data_inicio:
+        filtros.append("DATE(data_cadastro) >= %s")
+        params.append(data_inicio)
+
+    if data_fim:
+        filtros.append("DATE(data_cadastro) <= %s")
+        params.append(data_fim)
+
+    if filtros:
+        base_query += " AND " + " AND ".join(filtros)
+
+
+    # total filtrado
+    cursor.execute(f"SELECT COUNT(*) AS total {base_query}", params)
+    total_filtrado = cursor.fetchone()["total"]
+
+    # paginação + ordenação
+    query = f"""
+        SELECT *
+        {base_query}
+        ORDER BY {order_column_name} {order_sql}
+        LIMIT %s OFFSET %s
+    """
+    params += [length, start]
+
+    cursor.execute(query, params)
+    rows = cursor.fetchall()
+
+    cred = {}
+    for r in rows:
+        cod = r["codigo"]
+
+        if cod not in cred:
+            cred[cod] = {
+                "codigo": cod,
+                "razao_social": r["razao_social"],
+                "nome_fantasia": r["nome_fantasia"],
+                "cidade": r["cidade"],
+                "uf": r["uf"],
+                "produtos": set(),
+                "taxa_servico": [],
+                "taxa_servico_n": [],
+                "taxa_interconexao": [],
+                "taxa_interconexao_n": [],
+                "data_cadastro": r["data_cadastro"],
+                "data_utransacao": r["data_utransacao"],
+            }
+
+        cred[cod]["produtos"].add(r["produto"])
+        cred[cod]["taxa_servico"].append(r["taxa_servico"])
+        cred[cod]["taxa_servico_n"].append(r["taxa_servico_n"])
+        cred[cod]["taxa_interconexao"].append(r["taxa_interconexao"])
+        cred[cod]["taxa_interconexao_n"].append(r["taxa_interconexao_n"])
+
+    data = []
+    for c in cred.values():
+        produtos_concat = "/".join(sorted(list(c["produtos"])))
+        serv_diff = len(set(c["taxa_servico"])) > 1
+        serv2_diff = len(set(c["taxa_servico_n"])) > 1
+        inter_diff = len(set(c["taxa_interconexao"])) > 1
+        inter2_diff = len(set(c["taxa_interconexao_n"])) > 1
+
+        badge_serv = "badge-red" if serv_diff else ""
+        badge_serv2 = "badge-red" if serv2_diff else ""
+        badge_inter = "badge-red" if inter_diff else ""
+        badge_inter2 = "badge-red" if inter2_diff else ""
+
+        #Formatação de data
+        dc = c["data_cadastro"]
+        if dc and not pd.isna(dc):
+            if isinstance(dc, str):
+                try:
+                    dc = datetime.strptime(dc, "%a, %d %b %Y %H:%M:%S %Z")
+                except:
+                    pass
+            data_cadastro = dc.strftime("%d/%m/%Y")
+        else:
+            data_cadastro = ""
+
+        #Formatação de data
+        du = c["data_utransacao"]
+        if du and not pd.isna(du):
+            if isinstance(du, str):
+                try:
+                    du = datetime.strptime(du, "%a, %d %b %Y %H:%M:%S %Z")
+                except:
+                    pass
+            data_utransacao = du.strftime("%d/%m/%Y")
+        else:
+            data_utransacao = ""
+
+        data.append([
+            c["codigo"],
+            c["razao_social"],
+            c["nome_fantasia"],
+            c["cidade"],
+            c["uf"],
+            produtos_concat,
+            f"<span class='{badge_serv}'>{c['taxa_servico'][0]:.2f}%</span>",
+            f"<span class='{badge_serv2}'>{c['taxa_servico_n'][0]:.2f}%</span>",
+            f"<span class='{badge_inter}'>{c['taxa_interconexao'][0]:.2f}%</span>",
+            f"<span class='{badge_inter2}'>{c['taxa_interconexao_n'][0]:.2f}%</span>",
+            data_cadastro,
+            data_utransacao,
+        ])
+
+    cursor.close()
+    conn.close()
+
+    return jsonify({
+        "draw": draw,
+        "recordsTotal": total,
+        "recordsFiltered": total_filtrado,
+        "data": data
+    })
 
 
 
