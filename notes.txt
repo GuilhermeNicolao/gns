@@ -15,7 +15,6 @@ ORC - Orçamento
 Paletas:
 #333
 #f0f2f5
-#089877
 #ccc
 #f9fafb
 #f1f7fc
