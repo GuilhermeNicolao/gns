@@ -213,68 +213,6 @@
         {% endif %}
 
 
-        <!-- Compliance-->
-        {% if 'COMPLIANCE' in session['modulos'] %}
-        <div class="dropdown">
-            <div class="dropdown-btn">Governança (2)</div>
-            <div class="dropdown-container">
-
-                <div class="dropdown">
-                    <div class="dropdown-btn"><b>Contratos</b></div>
-                    <div class="dropdown-container">
-                        <a href="{{ url_for('uploadcredenciadosCPL') }}">Upload Lista Credenciados</a>
-                        <a href="{{ url_for('visualizarcredenciadosCPL') }}">Lista Credenciados</a>
-                        <a href="{{ url_for('validartaxasCPL') }}">Validar Taxas/Tarifas</a>
-                    </div>
-
-                <div class="dropdown">
-                    <div class="dropdown-btn"><b>Analytics</b></div>
-                    <div class="dropdown-container">
-                        <a href="{{ url_for('analisetaxasCPL') }}">Análise Taxas Credenciados</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-        </div>
-        {% endif %}
-
-
-        <!-- Financeiro -->
-        {% if 'FINANCEIRO' in session['modulos'] %}
-        <div class="dropdown">
-            <div class="dropdown-btn">Financeiro (1)</div>
-            <div class="dropdown-container">
-
-                <div class="dropdown">
-                    <div class="dropdown-btn"><b>Conciliação</b></div>
-                    <div class="dropdown-container">
-                        <a href="{{ url_for('conciliacao_formFIN') }}">Formulário Dashboard</a>
-                        <a href="{{ url_for('dashboardconciliacaoFIN') }}">Dashboard Conciliação</a>
-                    </div>
-        {% endif %}
-
-        </div>
-        </div>
-        </div>
-        
-        <!--Parâmetros-->
-        {% if 'PARAMETROS' in session['modulos'] %}
-        <div class="dropdown">
-            <div class="dropdown-btn">Parâmetros (1)</div>
-            <div class="dropdown-container">
-
-                <div class="dropdown">
-                    <div class="dropdown-btn"><b>Indexadores</b></div>
-                    <div class="dropdown-container">
-                        <a href="{{ url_for('indexadores') }}">Cadastrar</a>
-                    </div>
-        {% endif %}
-
-        </div>
-        </div>
-        </div>
-
-
         <!-- Admin -->
         {% if session['nivel'] == 'ADMIN' %}
         <div class="dropdown">
