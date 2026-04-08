@@ -1833,6 +1833,10 @@ def relatorio2COM():
             y -= 12
 
             pdf.setFont("Helvetica", 8)
+            pdf.drawString(margem_esquerda, y, f"Nome: {sim['nome']}")
+            y -= 12
+            pdf.drawString(margem_esquerda, y, f"Empresa: {sim['empresa']}")
+            y -= 12
             pdf.drawString(margem_esquerda, y, f"Volume Mensal: {locale.currency(sim['volume_mensal'], grouping=True)}")
             y -= 12
             pdf.drawString(margem_esquerda, y, f"Volume Anual: {locale.currency(sim['volume_anual'], grouping=True)}")
@@ -2097,6 +2101,10 @@ def relatorioprc2COM():
             y -= 12
 
             pdf.setFont("Helvetica", 8)
+            pdf.drawString(margem_esquerda, y, f"Nome: {sim['nome']}")
+            y -= 12
+            pdf.drawString(margem_esquerda, y, f"Empresa: {sim['empresa']}")
+            y -= 12
             pdf.drawString(margem_esquerda, y, f"Volume Mensal: {locale.currency(sim['volume_mensal'], grouping=True)}")
             y -= 12
             pdf.drawString(margem_esquerda, y, f"Volume Anual: {locale.currency(sim['volume_anual'], grouping=True)}")
@@ -2359,6 +2367,10 @@ def relatorioeuc2COM():
             y -= 12
 
             pdf.setFont("Helvetica", 8)
+            pdf.drawString(margem_esquerda, y, f"Nome: {sim['nome']}")
+            y -= 12
+            pdf.drawString(margem_esquerda, y, f"Empresa: {sim['empresa']}")
+            y -= 12
             pdf.drawString(margem_esquerda, y, f"Volume Mensal: {locale.currency(sim['volume_mensal'], grouping=True)}")
             y -= 12
             pdf.drawString(margem_esquerda, y, f"Volume Anual: {locale.currency(sim['volume_anual'], grouping=True)}")
