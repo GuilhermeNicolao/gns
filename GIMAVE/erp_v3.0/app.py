@@ -35,6 +35,52 @@ except Error as e:
     print(3)
     raise
 
+def gerar_buffer_pdf_individual(sim, username):
+    """Gera o PDF no estilo vertical do relatorio2COM"""
+    buffer = BytesIO()
+    pdf = canvas.Canvas(buffer, pagesize=landscape(A4))
+    width, height = landscape(A4)
+    margem = 40
+    y = height - 50
+
+    pdf.setFont("Helvetica-Bold", 16)
+    pdf.drawString(180, y, "Relatório Analítico por Simulação")
+    y -= 30
+    pdf.line(margem, y + 10, width - margem, y + 10)
+
+    pdf.setFont("Helvetica-Bold", 11)
+    pdf.drawString(margem, y, f"Simulação ID: {sim['id']}")
+    y -= 20
+
+    pdf.setFont("Helvetica", 10)
+    # Lista de campos baseada no seu relatorio2COM
+    itens = [
+        f"Nome: {sim['nome']}",
+        f"Empresa: {sim['empresa']}",
+        f"Volume Mensal: {locale.currency(sim['volume_mensal'], grouping=True)}",
+        f"Volume Anual: {locale.currency(sim['volume_anual'], grouping=True)}",
+        f"Volume Contrato: {locale.currency(sim['volume_contrato'], grouping=True)}",
+        f"Lucro Operação: {locale.currency(sim['lucro_operacao'], grouping=True)}",
+        f"Lucro Operação p/ Mês: {locale.currency(sim['lucro_operacao_mensal'], grouping=True)}",
+        f"Rentabilidade Atual: {sim['rentabilidade_atual']}%",
+        f"Payback (Meses): {sim['payback']}",
+        f"Status Simulação: {sim['status']}",
+        f"Vendedor: {username}",
+        f"Data Criação: {sim['criado_em'].strftime('%d/%m/%Y %H:%M') if hasattr(sim['criado_em'], 'strftime') else sim['criado_em']}"
+    ]
+
+    for item in itens:
+        pdf.drawString(margem, y, item)
+        y -= 15
+        if y < 50:
+            pdf.showPage()
+            y = height - 50
+            pdf.setFont("Helvetica", 10)
+
+    pdf.save()
+    buffer.seek(0)
+    return buffer
+
 def modulo_requerido(*modulos_necessarios):
     def decorator(f):
         @wraps(f)
@@ -1351,71 +1397,45 @@ def calcular_simulacao():
 @app.route('/gravar_propostaCOM', methods=['POST'])
 @modulo_requerido('COMERCIAL','COMERCIALGESTOR')
 def gravar_propostaCOM():
-    #Verificação de sessão ativa
     if 'username' not in session:
         flash('Você precisa estar logado para acessar esta página.', 'warning')
         return redirect(url_for('login'))
 
-    #Dados enviados pelo front end, dados do usuário e status da simulação
     data = request.get_json()
     user_id = session.get('user_id')
     status = data.get("status","PENDENTE")
 
     try:
-        #Abertura de conexão com o DB
         conn = mysql.connector.connect(**db_config)
-        cursor = conn.cursor()
+        cursor = conn.cursor(dictionary=True)
 
         # Buscar os parâmetros no DB
         cursor.execute("SELECT * FROM parametros_com ORDER BY id DESC LIMIT 1")
         parametros = cursor.fetchone()
-
-        #Tratamento de exceção: Parâmetros
         if not parametros:
             return jsonify({"message": "Nenhum parâmetro cadastrado!"}), 400
 
-        parametros = list(parametros)[1:]  #Ignora o ID da tabela
+        parametros_lista = list(parametros.values())[1:] # Ignora o ID
 
-        #Faz o tratamento dos valores antes de gravar no DB
         def tratar_valor(valor):
             return float(valor.replace("R$", "").replace(".", "").replace(",", ".").strip())
 
         valores = (
-            data['nome'],
-            data['sobrenome'],
-            data['empresa'],
-            data['email'],
-            int(data['telefone']),
-            data['cnpj'],
-            data['situacao'],
-            int(data['qtde_cartoes']),
-            tratar_valor(data['valor_credito']),
-            int(data['meses']),
-            float(data['taxa_adm']),
-            tratar_valor(data['venda_cartoes']),
-            int(data['qtde_cartoes_tag']),
-            tratar_valor(data['rec_tags']),
-            int(data['qtde_cartoes_eus']),
+            data['nome'], data['sobrenome'], data['empresa'], data['email'], int(data['telefone']),
+            data['cnpj'], data['situacao'], int(data['qtde_cartoes']), tratar_valor(data['valor_credito']),
+            int(data['meses']), float(data['taxa_adm']), tratar_valor(data['venda_cartoes']),
+            int(data['qtde_cartoes_tag']), tratar_valor(data['rec_tags']), int(data['qtde_cartoes_eus']),
             tratar_valor(data['rec_saude']),
-            *parametros,
-            int(data['total_receitas']),
-            int(data['total_despesas']),
-            float(data['lucroOperacao']),
-            float(data['lucroOperacaoMensal']),
-            float(data['rentabilidadeAtual']),
-            float(data['volumeMensal']),      
-            float(data['volumeAnual']),       
-            float(data['volumeContrato']),
-            float(data['payback']),
-            user_id,
-            status
+            *parametros_lista,
+            int(data['total_receitas']), int(data['total_despesas']), float(data['lucroOperacao']),
+            float(data['lucroOperacaoMensal']), float(data['rentabilidadeAtual']),
+            float(data['volumeMensal']), float(data['volumeAnual']), float(data['volumeContrato']),
+            float(data['payback']), user_id, status
         )
 
-        #Insert
         sql = """
             INSERT INTO simulacao_com (
-                nome, sobrenome, empresa, email, telefone, 
-                cnpj, situacao, qtde_cartoes, 
+                nome, sobrenome, empresa, email, telefone, cnpj, situacao, qtde_cartoes, 
                 valor_credito, qtde_meses, taxa_adm, venda_cartoes,
                 qtde_cartoes_tag, rec_tags, qtde_cartoes_eus, rec_saude,
                 consumo_credenciado, confeccao_cartoes, custos_operacionais, custos_operacionais_qtde,
@@ -1425,21 +1445,21 @@ def gravar_propostaCOM():
                 investimento_cartao, negociacao_aprovada, negociacao_pendente, rentabilidade_ideal,
                 total_receitas, total_despesas, lucro_operacao, lucro_operacao_mensal, rentabilidade_atual,
                 volume_mensal, volume_anual, volume_contrato, payback, user_id, status
-            ) VALUES (
-                %s, %s, %s, %s, %s, %s, %s, %s, %s,
-                %s, %s, %s, %s, %s, %s, %s, %s, %s,
-                %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
-                %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
-                %s, %s, %s, %s, %s, %s, %s 
-            )
+            ) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
         """
         
         cursor.execute(sql, valores)
         conn.commit()
+        last_id = cursor.lastrowid
 
+        # --- BUSCA DADOS COMPLETOS PARA O PDF ---
+        cursor.execute("SELECT * FROM simulacao_com WHERE id = %s", (last_id,))
+        proposta_db = cursor.fetchone()
+        
+        # Gera o PDF individual detalhado
+        pdf_buffer = gerar_buffer_pdf_individual(proposta_db, session.get('username'))
 
-        #Envio de dados para o Zoho
-
+        # --- ENVIO DE DADOS PARA O ZOHO/ZAPIER (Mantendo seu original) ---
         dados_zapier = {
             "nome": data['nome'],
             "sobrenome": data['sobrenome'],
@@ -1451,39 +1471,31 @@ def gravar_propostaCOM():
             "numero_cartoes": int(data['qtde_cartoes']),
             "montante_esperado": float(data['volumeContrato']),
             "numero_tags": int(data['qtde_cartoes_tag'])
+        }
 
-
+        files = {
+            'file': (f'Simulacao_{last_id}_{data["empresa"]}.pdf', pdf_buffer, 'application/pdf')
         }
 
         zapier_url = os.getenv("ZAPIER")
-        response = requests.post(zapier_url, json=dados_zapier)
-
-        if response.status_code == 200:
+        try:
+            requests.post(zapier_url, data=dados_zapier, files=files)
             if status == "APROVADO":
                 flash("Proposta gravada e dados enviados ao CRM com sucesso!", "success")
             else:
                 flash("Proposta enviada para aprovação superior.", "warning")
+        except Exception as e:
+            print("Erro ao enviar para Zapier:", e)
 
-        
-        return jsonify({
-            "success": True,
-            "status": status
-        })
-    
+        return jsonify({"success": True, "status": status, "id": last_id})
+
     except Exception as e:
-
         print("Erro ao gravar proposta:", e)
-
-        flash("Erro ao gravar a proposta. Tente novamente.", "danger")
-        return jsonify({
-            "success": False,
-            "error": str(e)
-        }), 500
-
+        return jsonify({"success": False, "error": str(e)}), 500
     finally:
         cursor.close()
         conn.close()
-
+        
 @app.route('/aprovacoesCOM')
 @modulo_requerido('COMERCIALGESTOR')
 def aprovacoesCOM():
