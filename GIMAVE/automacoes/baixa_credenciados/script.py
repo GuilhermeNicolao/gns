@@ -17,6 +17,7 @@ import time
 import sys
 import os
 
+os.environ["NUMPY_EXPERIMENTAL_ARRAY_FUNCTION"] = "0"
 
 def iniciar_script():
     
@@ -25,6 +26,9 @@ def iniciar_script():
 
     diretorio = entry_diretorio.get()
     nome_arquivo = entry_arquivo.get()
+    banco = entry_banco.get()
+    agencia = entry_agencia.get()
+    conta = entry_conta.get()
 
     if not diretorio:
         messagebox.showerror("Erro", "Cole o diretório do borderô.")
@@ -34,11 +38,23 @@ def iniciar_script():
         messagebox.showerror("Erro", "Digite o nome do arquivo.")
         return
 
+    if not banco:
+        messagebox.showerror("Erro", "Digite o número do banco.")
+        return
+
+    if not agencia:
+        messagebox.showerror("Erro", "Digite o número da agência.")
+        return    
+    
+    if not conta:
+        messagebox.showerror("Erro", "Digite o número da conta.")
+        return
+
     root.destroy()
-    executar_script(diretorio, nome_arquivo)
+    executar_script(diretorio, nome_arquivo, banco, agencia, conta)
 
 
-def executar_script(diretorio, nome_arquivo):
+def executar_script(diretorio, nome_arquivo, banco, agencia, conta):
 
     # Configurar opções do Chrome
     options = Options()
@@ -150,9 +166,9 @@ def executar_script(diretorio, nome_arquivo):
     caminho_arquivo = os.path.join(diretorio, nome_arquivo)
     wb = load_workbook(caminho_arquivo)
     ws = wb["Reembolso"]
-
+    
     # Abrir página
-    navegador.get("http://an148124.protheus.cloudtotvs.com.br:1703/webapp/")
+    navegador.get("https://an148124.protheus.cloudtotvs.com.br:1703/webapp/")
     WebDriverWait(navegador, 30).until(EC.presence_of_element_located((By.TAG_NAME, "body")))
     actions = ActionChains(navegador)
 
@@ -198,15 +214,15 @@ def executar_script(diretorio, nome_arquivo):
         # time.sleep(15) #Opção para mudar a data do borderô  
 
         #Banco
-        inserir_Sem_Espaço(navegador,"COMP6022", "756",30)
+        inserir_Sem_Espaço(navegador,"COMP6022", banco ,30)
         time.sleep(1)
 
         #Agencia
-        inserir_Sem_Espaço(navegador,"COMP6023" ,"3337",30)
+        inserir_Sem_Espaço(navegador,"COMP6023" , agencia ,30)
         time.sleep(1)
 
         #Conta
-        inserir_Sem_Espaço(navegador,"COMP6024", "3780624",30)
+        inserir_Sem_Espaço(navegador,"COMP6024", conta ,30)
         time.sleep(1)
 
         #Modelo
@@ -339,7 +355,7 @@ def executar_script(diretorio, nome_arquivo):
 
 root = tk.Tk()
 root.title("Montagem de borderôs")
-root.geometry("300x150")
+root.geometry("300x300")
 root.configure(bg="gray")
 
 label_diretorio = tk.Label(root, text="Cole aqui o diretório do borderô:", bg="gray", fg="white")
@@ -351,6 +367,21 @@ label_arquivo = tk.Label(root, text="Digite o nome do arquivo:", bg="gray", fg="
 label_arquivo.pack(pady=3)
 entry_arquivo = tk.Entry(root)
 entry_arquivo.pack(pady=3)
+
+label_banco = tk.Label(root, text="Digite o número do banco:", bg="gray", fg="white")
+label_banco.pack(pady=3)
+entry_banco = tk.Entry(root)
+entry_banco.pack(pady=3)
+
+label_agencia = tk.Label(root, text="Digite o número da agencia:", bg="gray", fg="white")
+label_agencia.pack(pady=3)
+entry_agencia = tk.Entry(root)
+entry_agencia.pack(pady=3)
+
+label_conta = tk.Label(root, text="Digite o número da conta:", bg="gray", fg="white")
+label_conta.pack(pady=3)
+entry_conta = tk.Entry(root)
+entry_conta.pack(pady=3)
 
 botao = tk.Button(root, text="Iniciar", command=iniciar_script, bg="darkgray", fg="white")
 botao.pack(pady=10)
